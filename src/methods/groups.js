@@ -203,19 +203,18 @@ const setDeafultGrp = async (userId, grpId, setDefault = true) => {
         .once('value')
         .then(async snap => {
             if(setDefault || (!setDefault && snap.exists())) {
-                val = snap.val();
+                snap = snap.val();
 
                 let updates = {};
                 updates[`/users/${userId}/defaultGrp`] = setDefault ? grpId : null;
                 updates[`/groups/${grpId}/defaultGrp/${userId}`] = setDefault ? true : null;
-                val && (updates[`/groups/${val}/defaultGrp/${userId}`] = null);
+                snap && (updates[`/groups/${snap}/defaultGrp/${userId}`] = null);
 
                 let r = await database
                     .ref()
                     .update(updates)
                     .then(() => console.log('hohoho'))
                     .catch(e => ({ error: true, msg: 'Please check your internet connection', e }));
-
                 return r;
             }
             return {error: true, msg: 'No default group set!', e: 'No default group set!'};
@@ -249,6 +248,20 @@ const getGroupDetails = async grpId => {
 
     return group;
 };
+
+/**
+ *  Method to update details of a group in firebase
+ *
+ *  @param {string} grpId - id of the group to be updated
+ *  @param {object} newGroup - Object containing updated details of the user
+ *  @param {array} updateFields - The fields that actually need to be updated
+ *  @returns {(object|undefined)}
+ */
+
+ const updateGroupDetails = async (grpId, newGroup, updateFields) => {
+    if (!grpId || !newGroup) return { error: true, msg: 'Invalid parameters', e: 'Invalid parameters' };
+
+ }
 
 /**
  *  Method to add users in a particular group in firebase, also performs duplicate check
@@ -423,12 +436,53 @@ const joinGroupInfo = async grpId => {
     return { groupInfo: grp, users };
 };
 
+const deleteGroup = async grpId => {
+    if (!grpId)
+        return { error: true, msg: 'Could not complete your request', e: 'Invalid parameters' };
+    
+    const e = await database
+        .ref(`/groups/${grpId}`)
+        .once('value')
+        .then(async snap => {
+            if(snap.exists()) {
+                snap = snap.val();
+                let users = Object.keys(snap.members), updates = {};
+                const defaultUsers = snap.defaultGrp ? Object.keys(snap.defaultGrp) : [];
+
+                // removing the group from all relevant user objects
+                users.forEach(async userId => {
+                    updates[`/users/${userId}/groups/${grpId}`] = null;
+
+                    if(defaultUsers.indexOf(userId) !== -1) {
+                        updates[`/users/${userId}/defaultGrp`] = null;
+                    }
+                });
+
+                // removing the group object itself
+                updates[`/groups/${grpId}`] = null;
+
+                const e = await database
+                    .ref()
+                    .update(updates)
+                    .then(() => console.log('hohoho'))
+                    .catch(e => ({ error: true, msg: 'Please check your internet connection', e }))
+                
+                return e
+            } 
+        })
+        .catch(e => ({ error: true, msg: 'Please check your internet connection', e }));
+    
+        return e
+}
+
 export {
     createGroup,
     addUsersToGroup,
     setDeafultGrp,
     getGroupDetails,
+    updateGroupDetails,
     addGroupMembers,
     removeGroupMember,
+    deleteGroup,
     joinGroupInfo
 };

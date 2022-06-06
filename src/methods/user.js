@@ -3,7 +3,7 @@ import { firebase } from '@react-native-firebase/database';
 import * as RNLocalize from 'react-native-localize';
 import { nanoid } from 'nanoid';
 import { database } from './config';
-import { syncFriendsLocal } from './misc';
+import { profileChecks, syncFriendsLocal } from './misc';
 import { getItemLocal, setItemLocal, removeItemLocal } from './localStorage';
 import Geo from '../geo';
 
@@ -144,12 +144,10 @@ const getUsers = async (users = []) => {
             .ref(`/users/${userId}`)
             .once('value')
             .then(snap => {
-                const { name, photoURL, groups } = snap.val();
+                // const { name, photoURL, groups } = snap.val();
                 const user = {
                     _id: userId,
-                    name,
-                    photoURL,
-                    groups
+                    ...snap.val()
                 };
                 userInfo = [...userInfo, user];
             })
@@ -161,7 +159,42 @@ const getUsers = async (users = []) => {
     return userInfo;
 };
 
-const updateUserProfile = (userId, update) => {};
+/**
+ *  Method to update details of users in firebase
+ *
+ *  @param {string} userId - uid of current user
+ *  @param {object} newUser - Object containing updated details of the user
+ *  @param {array} updateFields - The fields that actually need to be updated
+ *  @returns {(object|undefined)}
+ */
+
+const updateUserProfile = async (userId, newUser, updateFields) => {
+    if (!userId || !newUser) return { error: true, msg: 'Invalid parameters', e: 'Invalid parameters' };
+
+    const fieldTests = profileChecks();
+    let n=updateFields.length,  updatedUser = {};
+    while(n--){
+        let result, field = updateFields[n];
+        switch(field) {
+            case 'name': result = fieldTests.userNameCheck(newUser[field]);break;
+            case 'email': result = fieldTests.userEmailCheck(newUser[field]);break;
+            case 'country': result = fieldTests.userCountryCheck(newUser[field]);break;
+        }
+        console.log('rr', result);
+        if(result?.error) {
+            return result
+        }
+        updatedUser = {...updatedUser, [field]: newUser[field]}
+    };
+    console.log('from user methods', updatedUser);
+    const e = await database
+        .ref(`/users/${userId}`)
+        .update(updatedUser)
+        .then(() => console.log('user updated'))
+        .catch(e => ({ error: true, msg: 'Please check your internet connection', e }));
+    
+    return e
+};
 
 /**
  *	Method to fetch user groups (sorted by lastActive) from firebase, returns empty array in case of no groups
@@ -469,4 +502,4 @@ const updateUserContact = async (userId, contact, success, failure) => {
         .catch(e => failure());
 };
 
-export { userSignIn, getUsers, getUserGroups, getUserFriends, updateUserContact, checkNewGuestUser };
+export { userSignIn, getUsers, updateUserProfile, getUserGroups, getUserFriends, updateUserContact, checkNewGuestUser };

@@ -92,7 +92,7 @@ export default Default = ({ route, navigation }) => {
         setBalanceInfo(calcBalanceDist(userArr, balancesJSON, relUserId, cashFlowArrJSON, currency));
     };
 
-    const addMembersModalNavigate = () => {
+    const addMembersToGroup = () => {
         navigation.navigate('newGroup', { screen: 'addMembers', params: { mode: 'modify', grpId: route.params._id } });
     };
 
@@ -148,6 +148,7 @@ export default Default = ({ route, navigation }) => {
                                 member={item}
                                 themeColor={themeColor}
                                 setMemberInfoModal={setMemberInfoModal}
+                                addMembersToGroup={addMembersToGroup}
                                 balanceInfo={balanceInfo?.filter(b => b._id === item._id)}
                             />
                         )}
@@ -175,10 +176,11 @@ export default Default = ({ route, navigation }) => {
                 <GroupSettingsModal
                     visible={settingsModal}
                     setVisible={showSettingsModal}
-                    addMembersModalNavigate={addMembersModalNavigate}
+                    addMembersToGroup={addMembersToGroup}
                     themeColor={themeColor}
                     group={group}
                     updateGroup={updateGroup}
+                    homeNavigate={homeNavigate}
                 />
             )}
             {memberInfoModal.visible && (
@@ -196,7 +198,7 @@ export default Default = ({ route, navigation }) => {
     );
 };
 
-const MemberItem = ({ member, themeColor, balanceInfo, setMemberInfoModal }) => {
+const MemberItem = ({ member, themeColor, balanceInfo, setMemberInfoModal, addMembersToGroup }) => {
     return (
         <Pressable
             style={Layout.horizontalScrollMemeberView.user}
@@ -219,8 +221,8 @@ const MemberItem = ({ member, themeColor, balanceInfo, setMemberInfoModal }) => 
                     />
                 </>
             ) : (
-                <Pressable onPress={() => null}>
-                    <Icon name="add-circle-outline" color={themeColor.low} size={40} />
+                <Pressable style={[styles.addMemberIcon, { borderColor: themeColor.med, borderWidth: 2 }]} onPress={addMembersToGroup}>
+                    <Icon name="add" color={themeColor.med} size={28} />
                 </Pressable>
             )}
         </Pressable>
@@ -268,3 +270,14 @@ const GroupTabs = ({ currency, netBal, balanceInfo, themeColor, _id, relUserId, 
         </Tab.Navigator>
     );
 };
+
+const styles = StyleSheet.create({
+    addMemberIcon: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        overflow: 'hidden'
+    }
+});

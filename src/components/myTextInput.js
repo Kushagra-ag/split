@@ -3,7 +3,7 @@ import { TextInput } from 'react-native';
 import { ThemeContext } from '../themeContext';
 import { Utility, Typography } from '../styles';
 
-export default MyTextInput = ({ keyboardType = 'default', placeholder, style, ...rest }) => {
+export default MyTextInput = React.forwardRef(({ keyboardType = 'default', placeholder, style, ...rest }, ref) => {
     const { theme } = useContext(ThemeContext);
     const themeColor = useMemo(() => {
         const currentTheme = theme === 'dark' ? Utility.Colors.light : Utility.Colors.dark;
@@ -12,6 +12,7 @@ export default MyTextInput = ({ keyboardType = 'default', placeholder, style, ..
 
     return (
         <TextInput
+            ref={ref}
             keyboardType={keyboardType}
             placeholder={placeholder}
             selectionColor={themeColor.low}
@@ -20,4 +21,4 @@ export default MyTextInput = ({ keyboardType = 'default', placeholder, style, ..
             {...rest}
         />
     );
-};
+});

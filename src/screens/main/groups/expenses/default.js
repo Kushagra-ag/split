@@ -238,6 +238,7 @@ export default Default = ({ route, navigation }) => {
                 style={Layout.scrollViewContainer}
                 contentContainerStyle={Layout.contentContainerStyleBtnBottom}
                 keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
             >
                 <View style={Layout.pageHeader}>
                     <MyText text={mode === 'add' ? 'Add New Expense' : 'Edit expense'} style={styles.head} title />

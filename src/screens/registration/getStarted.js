@@ -46,7 +46,7 @@ const GetStarted = ({ navigation }) => {
             return;
         }
 
-        navigation.replace('main', { screen: 'home' });
+        navigation.replace('default', { screen: 'home' });
     };
 
     return (

@@ -1,4 +1,4 @@
-// import { firebase } from '@react-native-firebase/database';
+import { firebase as fb } from '@react-native-firebase/functions';
 import { firebase, database } from './config';
 import { setItemLocal, removeItemLocal } from './localStorage';
 
@@ -401,8 +401,38 @@ export const profileChecks = () => {
 
     const userCountryCheck = country => {};
 
-    return { userNameCheck, userEmailCheck };
+    return { userNameCheck, userEmailCheck, userCountryCheck };
 };
+
+export const groupChecks = () => {
+    const grpNameCheck = name => {
+        name = name.trim();
+        if (!name) return { error: true, msg: 'Name is empty', e: 'User name field is null' };
+
+        /**
+         * String length should be between 1 and 50 (inclusive)
+         * String should only contain uppercase alphabets, lowercase alphabets, numbers, underscore, hyphen, decimal and spaces
+         */
+
+        const match = name.match(/^[a-zA-Z0-9\x20]{1,50}$/);
+        if (!match) return { error: true, msg: 'Name format is invalid', e: 'Group name field format is invalid' };
+    };
+
+    const grpDescCheck = desc => {
+        desc = desc.trim();
+        if (!desc) desc = null;
+
+        /**
+         * String length should be between 0 and 80 (inclusive)
+         * String should only contain uppercase alphabets, lowercase alphabets, numbers, underscore, hyphen, decimal and spaces
+         */
+
+        const match = desc.match(/^[a-zA-Z0-9\x20]{0,80}$/);
+        if (desc && !match) return { error: true, msg: 'Description format is invalid', e: 'Group description field format is invalid' };
+    };
+
+    return { grpNameCheck, grpDescCheck };
+}
 
 /**
  *  Method to sanitize a JSON object
@@ -451,10 +481,15 @@ export const addNullTx = cashFlowArr => {
 };
 
 export const testF = async () => {
-    let updates = {};
-    updates[`/users/tnuPW76MBecpTa6BkQizB4881XJ3/lastActive`] = firebase.database.ServerValue.increment(2);
-    const a = await database
-        .ref()
-        .update(updates);
-    console.log('as', a);
+    // let updates = {};
+    // updates[`/users/tnuPW76MBecpTa6BkQizB4881XJ3/lastActive`] = firebase.database.ServerValue.increment(2);
+    // const a = await database
+    //     .ref()
+    //     .update(updates);
+    // console.log('as', a);
+    fb.functions().useEmulator('10.0.2.2', 5001);
+    const {data} = await fb.functions().httpsCallable('groups-getGrp');
+    console.log('bb', data);
 };
+
+

@@ -51,6 +51,7 @@ export default NewGroup = ({ navigation }) => {
                     <MyTextInput
                         style={Textfield.field}
                         clearButtonMode="while-editing"
+                        maxLength={50}
                         placeholder="Add title here"
                         value={group.title}
                         onChangeText={e => handleChange(e, 'title')}
@@ -62,6 +63,7 @@ export default NewGroup = ({ navigation }) => {
                     <MyTextInput
                         style={Textfield.field}
                         clearButtonMode="while-editing"
+                        maxLength={80}
                         placeholder="Add description here"
                         value={group.desc}
                         onChangeText={e => handleChange(e, 'desc')}

@@ -13,12 +13,13 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
-import { CountryPicker } from 'react-native-country-codes-picker/components/CountryPicker';
+// import { CountryPicker } from 'react-native-country-codes-picker/components/CountryPicker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MyText from '../../../components/myText';
 import MyTextInput from '../../../components/myTextInput';
 import { MobileSaveOTP, CountrySelectModal } from '../../../modals';
 import { removeItemLocal, setItemLocal, getItemLocal } from '../../../methods/localStorage';
+import { updateUserProfile, getUsers } from '../../../methods/user';
 import { Layout, Textfield, Utility, Misc, Button } from '../../../styles';
 import { ThemeContext } from '../../../themeContext';
 import { PrimaryBtn } from '../../../components/buttons';
@@ -26,21 +27,22 @@ import Divider from '../../../components/divider';
 
 export default SettingHome = ({ navigation }) => {
     const { theme, setTheme, geoInfo, setGeoInfo } = useContext(ThemeContext);
-    const user = auth().currentUser;
-    const [savedUser] = useState({
-        name: user.displayName,
-        contact: user.phoneNumber,
-        country: `${geoInfo.name} (${geoInfo.phoneCode})`
-    });
+    const [user, setUser] = useState(null);
+    // const [savedUser] = useState({
+    //     name: user.displayName,
+    //     contact: user.phoneNumber,
+    //     country: `${geoInfo.name} (${geoInfo.phoneCode})`
+    // });
     const [btnDisabled, setBtnDisabled] = useState(true);
+    const [btnLoading, setBtnLoading] = useState(false);
     const [loading, setLoading] = useState({
         loading: false,
         otp: false
     });
     const [newUser, setNewUser] = useState({
-        name: user.displayName,
-        contact: user.phoneNumber || null,
-        country: `${geoInfo.name} (${geoInfo.phoneCode})`
+        name: null,
+        contact: null,
+        country: null
     });
     const [fieldsUpdated, setFieldsUpdated] = useState([]);
     const [phoneErr, setPhoneErr] = useState(false);
@@ -48,6 +50,7 @@ export default SettingHome = ({ navigation }) => {
     const [countryModal, showCountryModal] = useState(false);
     const [confirm, setConfirm] = useState(null);
     const [otpSuccess, setOtpSuccess] = useState(false);
+    const [err, setErr] = useState(null);
     const phoneRef = useRef();
 
     useFocusEffect(
@@ -59,6 +62,7 @@ export default SettingHome = ({ navigation }) => {
     function updateUser(val, key) {
         setOtpSuccess(false);
         setPhoneErr(false);
+        setErr(null);
 
         if (key === 'contact') {
             val = val.replace(/[^0-9\+]/g, '');
@@ -68,11 +72,22 @@ export default SettingHome = ({ navigation }) => {
         }
 
         setNewUser(newUser => ({ ...newUser, [key]: val }));
-        setBtnDisabled(false);
+        key !== 'contact' && setBtnDisabled(false);
         setFieldsUpdated(fieldsUpdated => Array.from(new Set([...fieldsUpdated, key])));
     }
 
-    const saveNewUser = () => {};
+    const saveNewUser = async () => {
+        setBtnDisabled(true);
+        setBtnLoading(true);
+        console.log(newUser, fieldsUpdated);
+        const result = await updateUserProfile(user.uid, newUser, fieldsUpdated);
+
+        if(result?.error) {
+            setErr(result.msg);
+            setBtnDisabled(false);
+        }
+        setBtnLoading(false);
+    };
 
     const toggleTheme = () =>
         setTheme(previousState => {
@@ -134,6 +149,18 @@ export default SettingHome = ({ navigation }) => {
         // navigation.navigate('registration');
     };
 
+    useEffect(() => {
+        getUsers([auth().currentUser.uid])
+            .then((u) => {
+                setUser(...u);
+                setNewUser({
+                    name: u[0]?.name,
+                    contact: u[0]?.contact || null,
+                    country: `${geoInfo.name} (${geoInfo.phoneCode})`
+                })
+            })
+    }, [])
+
     return (
         <SafeAreaView style={Layout.safeAreaContainer}>
             <ScrollView
@@ -145,7 +172,7 @@ export default SettingHome = ({ navigation }) => {
                 <KeyboardAvoidingView behavior="position">
                     <View style={[styles.photo, { borderColor: themeColor.high }]}>
                         <Image
-                            source={{ uri: user.photoURL }}
+                            source={{ uri: user?.photoURL }}
                             resizeMode="cover"
                             resizeMethod="scale"
                             style={[styles.img]}
@@ -169,6 +196,7 @@ export default SettingHome = ({ navigation }) => {
                                 <MyTextInput
                                     style={Textfield.field}
                                     clearButtonMode="while-editing"
+                                    maxLength={50}
                                     value={newUser.name}
                                     onChangeText={e => updateUser(e, 'name')}
                                 />
@@ -177,14 +205,14 @@ export default SettingHome = ({ navigation }) => {
                         <View style={Misc.rows.container}>
                             <View style={{ flexGrow: 1 }}>
                                 <MyText text="E-mail" opacity="low" bodySubTitle />
-                                <MyText text={user.email} opacity="low" bodyTitleGilroy />
+                                <MyText text={user?.email} opacity="low" bodyTitleGilroy />
                             </View>
                         </View>
                         <View style={Misc.rows.container}>
                             <View style={{ flexGrow: 1, maxWidth: '70%' }}>
                                 <View style={{ flexDirection: 'row' }}>
                                     <MyText text="Phone number" opacity="low" bodySubTitle />
-                                    {user.phoneNumber ? null : <View style={styles.notif}></View>}
+                                    {user?.phoneNumber ? null : <View style={styles.notif}></View>}
                                 </View>
                                 <MyTextInput
                                     // ref={phoneRef}
@@ -198,7 +226,7 @@ export default SettingHome = ({ navigation }) => {
                                 />
                                 {phoneErr && <MyText text={phoneErr} red />}
                             </View>
-                            {newUser.contact != user.phoneNumber ? (
+                            {newUser.contact != user?.contact ? (
                                 <Pressable
                                     onPress={() => {
                                         signInWithPhoneNumber(newUser.contact);
@@ -225,6 +253,26 @@ export default SettingHome = ({ navigation }) => {
                             </View>
                         </Pressable>
                         <Divider />
+                        {/* <View style={Misc.rows.container}>
+                            <MyText
+                                text='Feedback'
+                                opacity="low"
+                                bodySubTitle
+                            />
+                        </View> */}
+                        <Pressable style={Misc.rows.container} onPress={null}>
+                            <MyText
+                                text='Rate this app'
+                                bodyTitleGilroy
+                            />
+                        </Pressable>
+                        <Pressable style={Misc.rows.container} onPress={null}>
+                            <MyText
+                                text='Contact Us'
+                                bodyTitleGilroy
+                            />
+                        </Pressable>
+                        <Divider />
                         <View style={Misc.rows.container}>
                             <Pressable onPress={signOut}>
                                 <MyText
@@ -242,7 +290,8 @@ export default SettingHome = ({ navigation }) => {
                         </View>
                     </View>
                     <View style={[Button.bottomBtnContainer, { backgroundColor: Utility.Colors[theme].bg }]}>
-                        <PrimaryBtn title="Save" onPress={null} disabled={btnDisabled} />
+                        {err && <MyText text={err} error />}
+                        <PrimaryBtn title="Save" onPress={saveNewUser} disabled={btnDisabled} loading={btnLoading} />
                     </View>
                 </KeyboardAvoidingView>
             </ScrollView>
@@ -273,7 +322,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderRadius: 75,
         overflow: 'hidden',
-        borderColor: '#272727',
+        borderColor: Utility.Colors.dark.bg,
         borderWidth: 2
     },
     img: {
