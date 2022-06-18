@@ -11,7 +11,6 @@ export default ThemeProvider = props => {
 
     const getTheme = async () => {
         let mode = await getItemLocal('uiMode');
-        console.log('from themecontext, thememode - ', mode);
         if (!mode) {
             await setItemLocal({
                 key: 'uiMode',

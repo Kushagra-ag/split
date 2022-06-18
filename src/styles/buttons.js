@@ -9,7 +9,7 @@ export default StyleSheet.create({
         textAlign: 'center'
     },
     btnText: {
-        fontFamily: 'Gilroy-Medium',
+        fontFamily: 'Urbanist-Medium',
         fontSize: 18
     },
     primary: {
@@ -39,7 +39,7 @@ export default StyleSheet.create({
         // paddingBottom: 50,
         // paddingHorizontal: 30,
         width: '100%',
-        backgroundColor: '#fff'
+        backgroundColor: Utility.Colors.light.bg
     },
     fixedBottomBtnContainer: {
         position: 'absolute',

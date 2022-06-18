@@ -15,7 +15,11 @@ export default StyleSheet.create({
         color: Utility.Colors.green
     },
     label: {
-        fontFamily: 'Gilroy-Regular',
+        fontFamily: 'Urbanist-Regular',
+        fontSize: 18
+    },
+    menuItem: {
+        fontFamily: 'Urbanist-Regular',
         fontSize: 18
     },
     bigTitle: {
@@ -27,20 +31,17 @@ export default StyleSheet.create({
         fontSize: 30
     },
     subTitle: {
-        fontFamily: 'Gilroy-Regular',
+        fontFamily: 'Urbanist-Regular',
         fontSize: 16
     },
     body: {
         title: {
-            fontFamily: 'Gilroy-Regular',
-            fontSize: 20
-        },
-        titleGilroy: {
-            fontFamily: 'Gilroy-Regular',
+            fontFamily: 'Urbanist-Regular',
+            letterSpacing: Utility.LetterSpacing,
             fontSize: 20
         },
         subTitle: {
-            fontFamily: 'Gilroy-Regular',
+            fontFamily: 'Urbanist-Regular',
             fontSize: 14
         }
     },
@@ -52,17 +53,17 @@ export default StyleSheet.create({
         }
     },
     expenseDate: {
-        fontFamily: 'Gilroy-Light',
+        fontFamily: 'Urbanist-Light',
         fontSize: 11
     },
     errorText: {
-        fontFamily: 'Gilroy-Medium',
+        fontFamily: 'Urbanist-Medium',
         color: Utility.Colors.red,
         paddingBottom: 15,
         textAlign: 'center'
     },
     splashText: {
-        fontFamily: 'Gilroy-Regular',
+        fontFamily: 'Urbanist-Regular',
         color: Utility.Colors.light.low,
         fontSize: 20,
         paddingBottom: 30,

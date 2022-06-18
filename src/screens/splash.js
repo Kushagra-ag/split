@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { View, SafeAreaView, StyleSheet, Image } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import MyText from '../components/myText';
@@ -30,24 +31,11 @@ const Splash = ({ navigation, initCondition, params }) => {
 
     async function onAuthStateChanged(user) {
         console.log('state changed- ', user);
-        console.log('initCondition detected - ', params);
         // await EncryptedStorage.clear()
 
         if (user) {
-            if (initCondition) {
-                navigate('default', {
-                    screen: 'groups',
-                    params: {
-                        screen: 'joinGroup',
-                        params: {
-                            grpId: params.groupId
-                        }
-                    }
-                });
-            } else {
-                console.log('settimg redirect to main');
-                navigate('default');
-            }
+            console.log('settimg redirect to main');
+            navigate('default');
         } else {
             console.log('no user found -Splash.js - onAuthStateChanged');
             const visited = await checkFirstTime();
@@ -56,10 +44,10 @@ const Splash = ({ navigation, initCondition, params }) => {
     }
 
     const navigate = async (screen, params = null) => {
-        console.log('from navigate - screen - ', screen);
+        console.log('from navigate - screen - ', screen, params);
 
         if (screen === 'default') {
-            // Preloading homepage Info ~350ms
+            // Preloading homepage Info
             let userGroupInfo = await getUserGroups(auth().currentUser.uid);
             params = params
                 ? { ...params, userGroupInfo }
@@ -73,7 +61,7 @@ const Splash = ({ navigation, initCondition, params }) => {
 
         setTimeout(() => {
             navigation.replace(screen, params);
-        }, 1000);
+        }, 600);
     };
 
     useEffect(() => {
@@ -81,6 +69,12 @@ const Splash = ({ navigation, initCondition, params }) => {
         const subscriber = auth().onAuthStateChanged(debounce);
         return subscriber;
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            debounce(auth().currentUser);
+        }, [initCondition])
+    );
 
     return (
         <SafeAreaView style={Layout.safeAreaContainer}>

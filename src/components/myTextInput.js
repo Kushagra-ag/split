@@ -17,7 +17,7 @@ export default MyTextInput = React.forwardRef(({ keyboardType = 'default', place
             placeholder={placeholder}
             selectionColor={themeColor.low}
             placeholderTextColor={themeColor.low}
-            style={[{ fontFamily: 'Gilroy-Regular', color: themeColor.high }, style]}
+            style={[{ fontFamily: 'Urbanist-Regular', color: themeColor.high }, style]}
             {...rest}
         />
     );

@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
-import { View, Modal, ScrollView, StyleSheet, Pressable, TouchableOpacity, Switch, Alert } from 'react-native';
+import {
+    View,
+    Modal,
+    ScrollView,
+    useWindowDimensions,
+    StyleSheet,
+    Pressable,
+    TouchableOpacity,
+    Switch,
+    Share,
+    Alert
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MyText from '../components/myText';
@@ -7,6 +18,7 @@ import MyTextInput from '../components/myTextInput';
 import Divider from '../components/divider';
 import { removeGroupMember, setDeafultGrp, deleteGroup } from '../methods/groups';
 import { Textfield, Layout, Misc, Utility } from '../styles';
+import { NavigationContainer } from '@react-navigation/native';
 
 export default GroupSettingsModal = ({
     visible,
@@ -16,6 +28,7 @@ export default GroupSettingsModal = ({
     themeColor,
     addMembersToGroup,
     homeNavigate,
+    navigate,
     ...rest
 }) => {
     const [grpNameEditable, setGrpNameEditable] = useState(false);
@@ -25,6 +38,7 @@ export default GroupSettingsModal = ({
         deleteGrp: false
     });
     const [user] = useState(auth().currentUser.uid);
+    const { height } = useWindowDimensions();
     const [err, setErr] = useState(null);
     const nameFieldRef = useRef(null);
 
@@ -50,37 +64,81 @@ export default GroupSettingsModal = ({
         }
         //call to update firebase
         const e = await setDeafultGrp(user, group._id, defGrp);
-        if(e?.error) {
+        if (e?.error) {
             setErr(e.msg);
-            return
+            return;
         }
         handleChange('defaultGrp', { [user]: defGrp });
     };
 
     const handleChange = (key, value) => {
+        setGrp(grp => ({ ...grp, [key]: value }));
+    };
 
-        setGrp(grp => ({...grp, [key]: value}))
-    }
+    const shareInviteLink = async () => {
+        console.log('in share func', grp.inviteLink);
+
+        try {
+            const result = await Share.share(
+                {
+                    title: 'Share the invite code with your friends',
+                    message: `Join my group on Split. Click here - ${grp.inviteLink}`
+                },
+                {
+                    dialogTitle: 'Invite link'
+                }
+            );
+            console.log('aa', result);
+            if (result.action === Share.sharedAction) {
+                if (result.activityType) {
+                    console.log(result);
+                } else if (result.action === Share.dismissedAction) {
+                    console.log('dismissed', result);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+            setErr('Cannot share link. Please try again later.');
+        }
+    };
 
     const leaveGroup = () => {
-        setLoading(loading => ({...loading, leaveGrp: false}));
+        setLoading(loading => ({ ...loading, leaveGrp: true }));
         setErr(null);
 
-        const leaveGrpConfirm = async () => {
-            const e = await removeGroupMember(auth().currentUser.uid, group._id);
-            setLoading(loading => ({...loading, leaveGrp: false}));
+        // Variable to delete group if the user is the sole member left
+        const delGrp = Object.keys(grp.members).length === 1 ? true : false;
 
-            if(e?.error) {
-                setErr(e.msg);
-                return
+        const leaveGrpConfirm = async () => {
+            if (delGrp) {
+                deleteGroup();
+                return;
             }
 
-            homeNavigate();
-        }
+            const e = await removeGroupMember(auth().currentUser.uid, group._id);
+            setLoading(loading => ({ ...loading, leaveGrp: false }));
+
+            if (e?.error) {
+                setErr(e.msg);
+                return;
+            }
+
+            // homeNavigate();
+            navigate({
+                index: 0,
+                routes: [
+                    {
+                        name: 'home'
+                    }
+                ]
+            }, 'reset');
+        };
 
         Alert.alert(
             '',
-            `Are you sure you want to leave this group?`,
+            `Are you sure you want to leave this group? ${
+                delGrp ? "Since you're the only member, the group will be deleted" : ''
+            }`,
             [
                 {
                     text: 'Cancel',
@@ -89,87 +147,97 @@ export default GroupSettingsModal = ({
                 { text: 'Yes', onPress: leaveGrpConfirm }
             ]
         );
-    }
+    };
 
     const deleteGrp = () => {
-        setLoading(loading => ({...loading, deleteGrp: true}));
+        setLoading(loading => ({ ...loading, deleteGrp: true }));
         setErr(null);
 
         const deleteGroupConfirm = async () => {
             const e = await deleteGroup(grp._id);
-            setLoading(loading => ({...loading, deleteGrp: false}));
+            setLoading(loading => ({ ...loading, deleteGrp: false }));
 
-            if(e?.error) {
+            if (e?.error) {
+                console.log(e);
                 setErr(e.msg);
-                return
+                return;
             }
 
-            homeNavigate();
+            // homeNavigate();
+            navigate({
+                index: 0,
+                routes: [
+                    {
+                        name: 'home'
+                    }
+                ]
+            }, 'reset')
         };
 
         const cashFlowArr = JSON.parse(grp.cashFlowArr);
-        let mostLentUserId = 0, maxAmt = 0;
+        let mostLentUserId = 0,
+            maxAmt = 0,
+            noExpense = true;
 
         cashFlowArr.forEach((c, relId) => {
-            if(c > maxAmt) {
+            if (c) noExpense = false;
+            if (c > maxAmt) {
                 mostLentUserId = relId;
                 maxAmt = c;
             }
         });
         console.log(cashFlowArr, mostLentUserId, maxAmt);
-        
-        if(grp.relUserId[auth().currentUser.uid] === mostLentUserId) {
+
+        if ((noExpense && group.ownerId === user) || grp.relUserId[user] === mostLentUserId) {
             // Current user is the one who lent most
-            Alert.alert(
-                '',
-                'Are you sure you want to delete this group?',
-                [
-                    {
-                        text: 'Cancel',
-                        onPress: () => setLoading(loading => ({...loading, deleteGrp: false}))
-                    },
-                    {
-                        text: 'yes',
-                        onPress: deleteGroupConfirm
-                    }
-                ]
-            );
+            Alert.alert('', 'Are you sure you want to delete this group?', [
+                {
+                    text: 'Cancel',
+                    onPress: () => setLoading(loading => ({ ...loading, deleteGrp: false }))
+                },
+                {
+                    text: 'yes',
+                    onPress: deleteGroupConfirm
+                }
+            ]);
         } else {
-            Alert.alert(
-                '',
-                'Only the person who has lent the most can delete a group :)',
-                [
-                    {
-                        text: 'Cancel',
-                        onPress: () => setLoading(loading => ({...loading, deleteGrp: false}))
-                    }
-                ]
-            );
+            Alert.alert('', 'Only the person who has lent the most can delete a group :)', [
+                {
+                    text: 'Cancel',
+                    onPress: () => setLoading(loading => ({ ...loading, deleteGrp: false }))
+                }
+            ]);
         }
-    }
+    };
 
     return (
         <Modal visible={visible} animationType="fade" transparent={true} {...rest}>
             <View style={[Layout.modal.modalView]}>
-                <View
+                <ScrollView
                     style={[
-                        Layout.modal.modalChildView,
                         {
                             backgroundColor:
                                 themeColor.bg === Utility.Colors.dark.bg
                                     ? Utility.Colors.light.bg
-                                    : Utility.Colors.dark.bg
+                                    : Utility.Colors.dark.bg,
+                            maxHeight: height / 2,
+                            borderTopRightRadius: 20,
+                            borderTopLeftRadius: 20
                         }
                     ]}
+                    contentContainerStyle={Layout.modal.modalChildView}
                 >
                     <View style={[Layout.pageHeader, { width: '100%' }]}>
                         <MyText text="Group settings" bodyTitle style={{ fontFamily: 'PlayfairDisplay-Bold' }} />
-                        <Pressable onPress={() => {setVisible(false);
-                            if(grpNameEditable) {
-                                setGrpNameEditable(false);
-                                setGrp(grp => ({...grp, name: group.name}))
-                            }
-                        }}>
+                        <Pressable
+                            onPress={() => {
+                                setVisible(false);
+                                if (grpNameEditable) {
+                                    setGrpNameEditable(false);
+                                    setGrp(grp => ({ ...grp, name: group.name }));
+                                }
+                            }}
+                        >
                             <Icon name="close-circle" color={themeColor.med} size={28} />
                         </Pressable>
                     </View>
@@ -180,7 +248,7 @@ export default GroupSettingsModal = ({
                             style={[Textfield.field, { flexGrow: 0 }]}
                             editable={grpNameEditable}
                             clearButtonMode="while-editing"
-                            onChangeText={(text) => handleChange('name', text)}
+                            onChangeText={text => handleChange('name', text)}
                         />
                         <Pressable
                             onPress={() => {
@@ -199,18 +267,20 @@ export default GroupSettingsModal = ({
                             {grpNameEditable ? <MyText text="Save" /> : <MyText text="Edit" />}
                         </Pressable>
                     </View>
-                    
-                        <Pressable
-                            onPress={addMembers}
-                            style={({ pressed }) => [Misc.rows.container, styles.menuItem,
-                                pressed ? { opacity: 0.6, backgroundColor: '#00000022' } : {}
-                            ]}
-                        >
-                            <MyText text="Add members" bodyTitle />
-                        </Pressable>
-                    
+
+                    <Pressable
+                        onPress={addMembers}
+                        style={({ pressed }) => [
+                            Misc.rows.container,
+                            styles.menuItem,
+                            pressed ? { opacity: 0.6, backgroundColor: '#00000022' } : {}
+                        ]}
+                    >
+                        <MyText text="Add members" menuItem />
+                    </Pressable>
+
                     <View style={[Misc.rows.container, styles.menuItem]}>
-                        <MyText text="Default group" bodyTitle />
+                        <MyText text="Default group" menuItem />
                         <Switch
                             onValueChange={toggleDefaultGroup}
                             value={grp.defaultGrp && grp.defaultGrp[user]}
@@ -218,27 +288,41 @@ export default GroupSettingsModal = ({
                             thumbColor={themeColor.high}
                         />
                     </View>
+                    <TouchableOpacity onPress={shareInviteLink} style={[Misc.rows.container, styles.menuItem]}>
+                        <MyText text="Share invite link" menuItem />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => navigate({
+                                _id: grp._id
+                        }, 'navigate', 'setDefaultConfig')}
+                        style={[
+                            Misc.rows.container,
+                            styles.menuItem,
+                        ]}
+                    >
+                        <MyText text="Set default distribution" menuItem />
+                    </TouchableOpacity>
                     <Divider />
-                    
-                        <TouchableOpacity
-                            onPress={leaveGroup}
-                            style={[Misc.rows.container, styles.menuItem]}
-                            disabled={loading.leaveGrp}
-                        >
-                            <MyText text="Leave group" bodyTitle />
-                        </TouchableOpacity>
-                    
-                    
-                        <TouchableOpacity
-                            onPress={deleteGrp}
-                            style={[Misc.rows.container, styles.menuItem]}
-                            disabled={loading.deleteGrp}
-                        >
-                            <MyText text="Delete group" bodyTitle />
-                        </TouchableOpacity>
-                    
+
+                    <TouchableOpacity
+                        onPress={leaveGroup}
+                        style={[Misc.rows.container, styles.menuItem]}
+                        disabled={loading.leaveGrp}
+                    >
+                        <MyText text="Leave group" menuItem />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={deleteGrp}
+                        style={[Misc.rows.container, styles.menuItem]}
+                        disabled={loading.deleteGrp}
+                    >
+                        <MyText text="Delete group" menuItem />
+                    </TouchableOpacity>
+
                     {err && <MyText text={err || ''} error />}
-                </View>
+                </ScrollView>
             </View>
         </Modal>
     );

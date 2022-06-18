@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, SafeAreaView, StyleSheet, Text, FlatList, Animated } from 'react-native';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import { OnboardingItem, Paginator, NextBtn } from '../../components/onboarding';
-import { Layout } from '../../styles';
+import { Layout, Utility } from '../../styles';
 
 const slides = [
     {
@@ -37,7 +37,6 @@ export default Onboarding = ({ navigation }) => {
     const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
     const btnScroll = async () => {
-        console.log('in btnscroll');
         if (index < slides.length - 1) {
             slidesRef.current.scrollToIndex({ index: index + 1 });
         } else {
@@ -78,7 +77,7 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: Utility.Colors.light.bg,
         color: '#272727'
     }
 });

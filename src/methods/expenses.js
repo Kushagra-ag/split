@@ -114,7 +114,7 @@ export const addExpense = async ({
         splitBet = {},
         distFlowArr = Array(cashFlowArr.length).fill(0),
         e;
-    
+
     console.log('aa', cashFlowArr, cashFlowArr.length, distFlowArr);
 
     usersPaid.forEach(u => {
@@ -188,9 +188,10 @@ export const addExpense = async ({
     updates[`/expenses/${grpId}/${_id}`] = newExpense;
 
     usersPaid.forEach(p => {
-        updates[`/users/${p._id}/groups/${grpId}/amtSpent`] = firebase.database.ServerValue.increment(parseFloat(p.val));
-
-    })
+        updates[`/users/${p._id}/groups/${grpId}/amtSpent`] = firebase.database.ServerValue.increment(
+            parseFloat(p.val)
+        );
+    });
 
     console.log('upd', updates);
 
@@ -203,6 +204,15 @@ export const addExpense = async ({
     return e;
 };
 
+export const editExpense = async ({expId, grpId, expense}) => {
+
+    const res = await database
+        .ref(`/expenses/${grpId}/${expId}`)
+        .update(expense)
+        .then(() => console.log('updated'))
+        .catch(() => ({ error: true, msg: 'Please check your internet connection', e }));
+}
+
 /**
  *  Method to delete expense
  *
@@ -212,7 +222,12 @@ export const addExpense = async ({
  */
 
 export const deleteExpense = async (grpId, expId, uid) => {
-    let grpBal, expBal, cashFlowArr, expAmt, relUserId, updates = {};
+    let grpBal,
+        expBal,
+        cashFlowArr,
+        expAmt,
+        relUserId,
+        updates = {};
 
     const res = await database
         .ref(`/groups/${grpId}`)
@@ -239,7 +254,7 @@ export const deleteExpense = async (grpId, expId, uid) => {
 
                             // Calculating updated amtSpent
                             // const _id = Object.keys(relUserId).find(id => relUserId[id] == rec);
-                            // if (!amtSpentArr[`/users/${_id}/groups/${grpId}/amtSpent`]) amtSpentArr[`/users/${_id}/groups/${grpId}/amtSpent`] = 0; 
+                            // if (!amtSpentArr[`/users/${_id}/groups/${grpId}/amtSpent`]) amtSpentArr[`/users/${_id}/groups/${grpId}/amtSpent`] = 0;
                             // amtSpentArr[`/users/${_id}/groups/${grpId}/amtSpent`] -= expBal[payee][rec];
                             // console.log('amtSpentArr', amtSpentArr);
 
@@ -276,21 +291,23 @@ export const deleteExpense = async (grpId, expId, uid) => {
 
                     distFlowArr.forEach((amount, idx) => {
                         const _id = Object.keys(relUserId).find(id => relUserId[id] == idx);
-                        if(amount < 0) {
-                            updates[`/users/${_id}/groups/${grpId}/amtSpent`] = firebase.database.ServerValue.increment(amount);
+                        if (amount < 0) {
+                            updates[`/users/${_id}/groups/${grpId}/amtSpent`] =
+                                firebase.database.ServerValue.increment(amount);
                         }
-                    })
+                    });
 
                     console.log('after del', grpBal, cashFlowArr, distFlowArr);
 
                     // A null tx to optimize the distribution further (if possible)
                     const groupParams = addNullTx(cashFlowArr);
 
-                    
                     updates[`/groups/${grpId}/cashFlowArr`] = JSON.stringify(groupParams.newCashFlowArr);
                     updates[`/groups/${grpId}/balances`] = JSON.stringify(groupParams.grpBalance);
                     updates[`/groups/${grpId}/netBal`] = firebase.database.ServerValue.increment(-expAmt);
-                    updates[`/users/${uid}/groups/${grpId}/amtSpent`] = firebase.database.ServerValue.increment(-expAmt);
+                    updates[`/users/${uid}/groups/${grpId}/amtSpent`] = firebase.database.ServerValue.increment(
+                        -expAmt
+                    );
                     updates[`/groups/${grpId}/lastActive`] = Date.now();
                     updates[`/users/${uid}/lastActive`] = Date.now();
                     updates[`/expenses/${grpId}/${expId}`] = null;
@@ -307,7 +324,7 @@ export const deleteExpense = async (grpId, expId, uid) => {
                     //     updates[`/users/${uid}/groups/${grpId}/amtSpent`] = firebase.database.ServerValue.increment((amtSpentArr[`/users/${uid}/groups/${grpId}/amtSpent`] || 0) - parseFloat((expAmt - netSum).toFixed(2)))
                     // }
 
-                    console.log(updates)
+                    console.log(updates);
 
                     const e = await database
                         .ref()
@@ -329,7 +346,8 @@ export const deleteExpense = async (grpId, expId, uid) => {
             return { error: true, msg: 'Please check your internet connection', e };
         });
 
-    if (res) {console.log('res', res)
+    if (res) {
+        console.log('res', res);
         return res;
     }
 };

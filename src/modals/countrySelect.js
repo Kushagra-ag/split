@@ -14,7 +14,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import MyText from '../components/myText';
 import MyTextInput from '../components/myTextInput';
-import { Textfield, Layout, Misc } from '../styles';
+import { Utility, Layout, Misc } from '../styles';
 import Geo from '../geo';
 
 export default CountrySelectModal = ({ visible, setVisible, updateUser, themeColor, geoInfo }) => {
@@ -42,7 +42,8 @@ export default CountrySelectModal = ({ visible, setVisible, updateUser, themeCol
                 <ScrollView
                     style={[
                         {
-                            backgroundColor: themeColor.bg === '#272727' ? '#fff' : '#272727',
+                            backgroundColor:
+                                themeColor.bg === '#272727' ? Utility.Colors.light.bg : Utility.Colors.dark.bg,
                             maxHeight: height / 1.5,
                             borderTopRightRadius: 20,
                             borderTopLeftRadius: 20

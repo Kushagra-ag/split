@@ -6,7 +6,7 @@ import MyText from '../components/myText';
 import MyTextInput from '../components/myTextInput';
 import { PrimaryBtn } from '../components/buttons';
 import { updateUserContact } from '../methods/user';
-import { Textfield, Layout } from '../styles';
+import { Textfield, Layout, Utility } from '../styles';
 
 export default MobileSaveOTP = ({ visible, setVisible, newUser, setNewUser, confirm, themeColor, setOtpSuccess }) => {
     const [err, setErr] = useState(null);
@@ -110,7 +110,10 @@ export default MobileSaveOTP = ({ visible, setVisible, newUser, setNewUser, conf
                 <View
                     style={[
                         Layout.modal.modalChildView,
-                        { backgroundColor: themeColor.bg === '#272727' ? '#fff' : '#272727' }
+                        {
+                            backgroundColor:
+                                themeColor.bg === '#272727' ? Utility.Colors.light.bg : Utility.Colors.dark.bg
+                        }
                     ]}
                 >
                     <View style={[Layout.pageHeader, { width: '100%' }]}>

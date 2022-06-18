@@ -18,6 +18,7 @@ import { AddUsersExpenseModal } from '../../../../../modals';
 import { OutlineBtn, PrimaryBtn } from '../../../../../components/buttons';
 import { Layout, Utility, Typography, Textfield, Misc } from '../../../../../styles';
 import { getUsers } from '../../../../../methods/user';
+import { splitEqual } from '../../../../../methods/misc';
 
 export default SplitBetween = ({ currency, amt, users, setSplitSettled, usersSplit, setUsersSplit }) => {
     const { theme } = useContext(ThemeContext);
@@ -73,54 +74,30 @@ export default SplitBetween = ({ currency, amt, users, setSplitSettled, usersSpl
     };
 
     // Checking the possibilities of only decimal values
-    const onBlur = (userId) => {
+    const onBlur = userId => {
         let n = usersSplit.length,
-            u = [...usersSplit], mulDec=0;
-        
-            while(n--) {
-                if(u[n]._id === userId) {
-                    [...u[n].val].forEach(c => {if(c!=='.') mulDec += 1})
-                    if(mulDec === 0) {
-                        u[n].val = '0';
-                    } else {
-                        u[n].val = parseFloat(u[n].val).toFixed(2);
-                    }
-                    setUsersSplit(u);
+            u = [...usersSplit],
+            mulDec = 0;
+
+        while (n--) {
+            if (u[n]._id === userId) {
+                [...u[n].val].forEach(c => {
+                    if (c !== '.') mulDec += 1;
+                });
+                if (mulDec === 0) {
+                    u[n].val = '0';
+                } else {
+                    u[n].val = parseFloat(u[n].val).toFixed(2);
                 }
-            }
-    }
-
-    const splitEqual = (addAll = false) => {
-        // console.log(usersSplit);
-        let u = addAll ? [...members] : [...usersSplit],
-            n = u.length;
-        const share = parseFloat(amt / n).toFixed(2);
-
-        u.forEach(user => {
-            user.val = share;
-        });
-
-        const diff = (parseFloat(share) * n).toFixed(2) - amt;
-        // console.log(diff.toFixed(2));
-
-        if (diff) {
-            if (diff > 0) {
-                let k = parseInt((parseFloat(diff) * 100).toFixed(2));
-
-                while (k--) {
-                    u[k].val = (parseFloat(u[k].val) - 0.01).toFixed(2);
-                }
-            } else if (diff < 0) {
-                let k = -parseInt((parseFloat(diff) * 100).toFixed(2));
-
-                while (k--) {
-                    u[k].val = (parseFloat(u[k].val) + 0.01).toFixed(2);
-                }
+                setUsersSplit(u);
             }
         }
+    };
 
+    const addAllUsers = () => {
+        const u = splitEqual(members, amt);
         setUsersSplit(u);
-        addAll ? showUserModal(false) : null;
+        showUserModal(false);
     };
 
     const removeUser = userId => {
@@ -167,7 +144,7 @@ export default SplitBetween = ({ currency, amt, users, setSplitSettled, usersSpl
                                 {usersSplit.length > 1 && (
                                     <OutlineBtn
                                         title="Split equally"
-                                        onPress={() => splitEqual(false)}
+                                        onPress={() => setUsersSplit(splitEqual(usersSplit, amt))}
                                         style={{ flexGrow: 1 }}
                                     />
                                 )}
@@ -197,7 +174,7 @@ export default SplitBetween = ({ currency, amt, users, setSplitSettled, usersSpl
                         users={usersSplit}
                         updateUsers={setUsersSplit}
                         themeColor={themeColor}
-                        splitEqual={splitEqual}
+                        addAllUsers={addAllUsers}
                     />
                 )}
             </KeyboardAvoidingView>
@@ -257,10 +234,10 @@ const SubText = ({ amt, sum, currency, setSplitSettled }) => {
     useEffect(() => {
         setEqual(amt == sum);
         amt == sum ? setSplitSettled(true) : setSplitSettled(false);
-        if(isNaN(amt - sum)) {
-            setHideSubtext(true)
+        if (isNaN(amt - sum)) {
+            setHideSubtext(true);
         } else {
-            setHideSubtext(false)
+            setHideSubtext(false);
         }
     }, [sum, amt]);
 
@@ -276,7 +253,7 @@ const SubText = ({ amt, sum, currency, setSplitSettled }) => {
                 }
                 opacity="low"
                 {...(equal ? { green: true } : { red: true })}
-                style={[hideSubtext && {display: 'none'}]}
+                style={[hideSubtext && { display: 'none' }]}
                 bodySubTitle
             />
         </>

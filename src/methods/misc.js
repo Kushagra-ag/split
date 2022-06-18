@@ -97,7 +97,7 @@ export const getFriendsData = async (ownerId, users, removeUsers = []) => {
         fUpdates[update] = idArr;
     }
 
-    console.log('are now friends deleted? ', fUpdates);
+    console.log('are now friends deleted? ', fUpdates, fErr);
 
     return { fUpdates, fErr };
 };
@@ -261,21 +261,21 @@ export const calcBalanceDist = (userArr, balancesJSON, relUserId, cashFlowArr, c
 
     // constructing the expense cashFlowArr
     if (!cashFlowArr) {
-        
         // Calculating array length
         let max = 0;
-        for(let r in relUserId) {
-            if(relUserId[r] > max) {
+        for (let r in relUserId) {
+            if (relUserId[r] > max) {
                 max = relUserId[r];
             }
         }
-        let expCashFlowArr = Array(max+1).fill(0);
+        let expCashFlowArr = Array(max + 1).fill(0);
 
         for (let payee in balancesJSON) {
-            for (let p in balancesJSON[payee]) { console.log(parseFloat(balancesJSON[payee][p]))
+            for (let p in balancesJSON[payee]) {
+                console.log(parseFloat(balancesJSON[payee][p]));
                 expCashFlowArr[payee] -= parseFloat(balancesJSON[payee][p]);
                 expCashFlowArr[p] += parseFloat(balancesJSON[payee][p]);
-                console.log('tt', expCashFlowArr)
+                console.log('tt', expCashFlowArr);
             }
         }
         cashFlowArr = expCashFlowArr;
@@ -283,7 +283,8 @@ export const calcBalanceDist = (userArr, balancesJSON, relUserId, cashFlowArr, c
     userArray = userArray.map(item => ({ ...item, balSummary: [] }));
 
     userArray = userArray.map((item, idx) => {
-        const myBal = cashFlowArr[relUserId[item._id]];console.log(myBal, item._id)
+        const myBal = cashFlowArr[relUserId[item._id]];
+        console.log(myBal, item._id);
 
         item.bal = {};
         item.bal.figure = myBal ? (myBal > 0 ? myBal : -myBal) : 0;
@@ -428,11 +429,56 @@ export const groupChecks = () => {
          */
 
         const match = desc.match(/^[a-zA-Z0-9\x20]{0,80}$/);
-        if (desc && !match) return { error: true, msg: 'Description format is invalid', e: 'Group description field format is invalid' };
+        if (desc && !match)
+            return {
+                error: true,
+                msg: 'Description format is invalid',
+                e: 'Group description field format is invalid'
+            };
     };
 
     return { grpNameCheck, grpDescCheck };
-}
+};
+
+/**
+ *  Method to split the cost equally among the given users
+ *
+ *  @param {boolean} addAll - Flag to indicate whether to add all users
+ *  @returns {array} - The updated array or object
+ */
+
+export const splitEqual = (users, amt) => {
+    
+    let u = [...users],
+        n = u.length;
+    // console.log('users - ', users, 'members - ', members)
+    const share = parseFloat(amt / n).toFixed(2);
+
+    u.forEach(user => {
+        user.val = share;
+    });
+    
+    const diff = (parseFloat(share) * n).toFixed(2) - amt;
+    console.log(diff.toFixed(2));
+
+    if (diff) {
+        if (diff > 0) {
+            let k = parseInt((parseFloat(diff) * 100).toFixed(2));
+
+            while (k--) {
+                u[k].val = (parseFloat(u[k].val) - 0.01).toFixed(2);
+            }
+        } else if (diff < 0) {
+            let k = -parseInt((parseFloat(diff) * 100).toFixed(2));
+
+            while (k--) {
+                u[k].val = (parseFloat(u[k].val) + 0.01).toFixed(2);
+            }
+        }
+    }
+    console.log('fkng', u)
+    return u;
+};
 
 /**
  *  Method to sanitize a JSON object
@@ -488,8 +534,6 @@ export const testF = async () => {
     //     .update(updates);
     // console.log('as', a);
     fb.functions().useEmulator('10.0.2.2', 5001);
-    const {data} = await fb.functions().httpsCallable('groups-getGrp');
+    const { data } = await fb.functions().httpsCallable('groups-getGrp');
     console.log('bb', data);
 };
-
-

@@ -69,7 +69,7 @@ export default ExpenseDistribution = ({ route, navigation }) => {
                         />
                     </View>
                 </View>
-                {/*<MyText text={expenseStat.statement} {...(expenseStat.color === 'green' ? { green: true } : { red: true })} bodyTitleGilroy style={{paddingBottom: 30}} />*/}
+                {/*<MyText text={expenseStat.statement} {...(expenseStat.color === 'green' ? { green: true } : { red: true })} bodyTitle style={{paddingBottom: 30}} />*/}
                 <View style={{ flex: 1 }}>
                     <GroupTabs
                         theme={theme}

@@ -83,7 +83,7 @@ export default Balances = ({ _id, users, currency, cashFlowArr, netBal, balanceI
             while (i !== n) {
                 if (b[i]._id === member._id) {
                     let amtSpent = member.groups[_id].amtSpent || 0;
-                    console.log('gg', member, member.groups)
+                    console.log('gg', member, member.groups);
                     b[i] = { ...b[i], ...slice, amtSpent };
                     member = { ...member, amtSpent };
                     break;
@@ -111,8 +111,7 @@ export default Balances = ({ _id, users, currency, cashFlowArr, netBal, balanceI
         // console.log('ss', slices);
 
         setSections(slices);
-
-        m.sort((a, b) => b.percentage - a.percentage);
+        m.sort((a, b) => b.amtSpent - a.amtSpent);
         console.log(m);
 
         // setTopPayee(m[hIdx]);
@@ -282,7 +281,7 @@ const BalanceItem = ({ grpId, item, currency, setSettleBalanceModal, theme }) =>
                 </View>
                 <Icon
                     name={collapse ? 'chevron-down-outline' : 'chevron-up-outline'}
-                    color={Utility.Colors[theme === 'light' ? 'dark' : 'light'].low}
+                    color={Utility.Colors[theme].low}
                     size={16}
                     style={{ paddingRight: 1 }}
                 />
@@ -300,7 +299,7 @@ const BalanceItem = ({ grpId, item, currency, setSettleBalanceModal, theme }) =>
                                 ]}
                                 key={idx}
                                 onPress={() => {
-                                    console.log('frm bal screen', balance);
+                                    // console.log('frm bal screen', balance);
                                     setSettleBalanceModal({
                                         visible: true,
                                         grpId,
@@ -314,7 +313,7 @@ const BalanceItem = ({ grpId, item, currency, setSettleBalanceModal, theme }) =>
                                     key={idx}
                                     opacity="low"
                                     subTitle
-                                    dark
+
                                 />
                                 <View>
                                     <Icon

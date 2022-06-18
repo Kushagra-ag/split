@@ -172,28 +172,36 @@ const updateUserProfile = async (userId, newUser, updateFields) => {
     if (!userId || !newUser) return { error: true, msg: 'Invalid parameters', e: 'Invalid parameters' };
 
     const fieldTests = profileChecks();
-    let n=updateFields.length,  updatedUser = {};
-    while(n--){
-        let result, field = updateFields[n];
-        switch(field) {
-            case 'name': result = fieldTests.userNameCheck(newUser[field]);break;
-            case 'email': result = fieldTests.userEmailCheck(newUser[field]);break;
-            case 'country': result = fieldTests.userCountryCheck(newUser[field]);break;
+    let n = updateFields.length,
+        updatedUser = {};
+    while (n--) {
+        let result,
+            field = updateFields[n];
+        switch (field) {
+            case 'name':
+                result = fieldTests.userNameCheck(newUser[field]);
+                break;
+            case 'email':
+                result = fieldTests.userEmailCheck(newUser[field]);
+                break;
+            case 'country':
+                result = fieldTests.userCountryCheck(newUser[field]);
+                break;
         }
         console.log('rr', result);
-        if(result?.error) {
-            return result
+        if (result?.error) {
+            return result;
         }
-        updatedUser = {...updatedUser, [field]: newUser[field]}
-    };
+        updatedUser = { ...updatedUser, [field]: newUser[field] };
+    }
     console.log('from user methods', updatedUser);
     const e = await database
         .ref(`/users/${userId}`)
         .update(updatedUser)
         .then(() => console.log('user updated'))
         .catch(e => ({ error: true, msg: 'Please check your internet connection', e }));
-    
-    return e
+
+    return e;
 };
 
 /**

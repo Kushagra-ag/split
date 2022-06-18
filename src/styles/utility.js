@@ -6,13 +6,13 @@ const Colors = {
         low: '#27272799'
     },
     light: {
-        bg: '#FFFFFF',
-        high: '#FFFFFFDE',
-        med: '#FFFFFF99',
-        low: '#FFFFFF61'
+        bg: '#F0DCCC',
+        high: '#F0DCCCDE',
+        med: '#F0DCCC99',
+        low: '#F0DCCC61'
     },
     red: '#EF6461',
-    green: '#70B77E',
+    green: '#266D31',
     palletes: [
         // '#E2B8AC',
         '#E5DCCD',
@@ -52,5 +52,6 @@ const Colors = {
 };
 
 const BtnBorderRadius = 30;
+const LetterSpacing = .5;
 
-export { Colors, BtnBorderRadius };
+export { Colors, BtnBorderRadius, LetterSpacing };

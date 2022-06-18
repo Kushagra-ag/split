@@ -9,7 +9,6 @@ import { Utility, Typography, Button } from '../styles';
  *  @param {String} text - Text to render
  *  @param {String} opacity - Enum('high', 'med', 'low')
  *  @param {Object} style - Additional styles to be applied
- *  @param {String} status - Enum('active', 'pending_deletion')
  *  @param {Boolean} styles - Specific predefined styles for the rendering text
  *  @returns {React Node}
  */
@@ -21,10 +20,10 @@ export default MyText = ({
     bigTitle,
     title,
     label,
+    menuItem,
     body,
     subTitle,
     bodyTitle,
-    bodyTitleGilroy,
     bodySubTitle,
     btnText,
     expenseDate,
@@ -34,11 +33,12 @@ export default MyText = ({
     green,
     light,
     dark,
+    letterSpacing,
     ...rest
 }) => {
     const { theme } = useContext(ThemeContext);
     const color = theme === 'light' ? Utility.Colors.dark[opacity] : Utility.Colors.light[opacity];
-
+    
     return (
         <Text
             {...rest}
@@ -48,8 +48,8 @@ export default MyText = ({
                 title && Typography.title,
                 subTitle && Typography.subTitle,
                 label && Typography.label,
+                menuItem && Typography.menuItem,
                 bodyTitle && Typography.body.title,
-                bodyTitleGilroy && Typography.body.titleGilroy,
                 bodySubTitle && Typography.body.subTitle,
                 btnText && Button.btnText,
                 expenseDate && Typography.expenseDate,
@@ -59,6 +59,7 @@ export default MyText = ({
                 splashText && Typography.splashText,
                 light && { color: Utility.Colors.light[opacity] },
                 dark && { color: Utility.Colors.dark[opacity] },
+                { letterSpacing },
                 style
             ]}
         >

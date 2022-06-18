@@ -16,7 +16,7 @@ const Main = ({ navigation }) => {
         <View
             style={[
                 styles.mainContainer,
-                { backgroundColor: theme === 'dark' ? Utility.Colors.dark.high : Utility.Colors.light.bg }
+                { backgroundColor: theme === 'dark' ? Utility.Colors.dark.bg : Utility.Colors.light.bg }
             ]}
         >
             <mainStack.Navigator initialRouteName="home" screenOptions={{ headerShown: false }}>

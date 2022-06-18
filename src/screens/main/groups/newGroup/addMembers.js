@@ -265,8 +265,9 @@ export default AddMembers = ({ route, navigation }) => {
                         <>
                             <MyText
                                 text="Friends on Split"
-                                bodyTitleGilroy
-                                style={[styles.listTitle, { fontFamily: 'Gilroy-Bold' }]}
+                                bodyTitle
+                                style={[styles.listTitle, { fontFamily: 'Urbanist-Bold'}]}
+                                letterSpacing={0}
                             />
                             {users.friends.map((friend, idx) => (
                                 <Pressable
@@ -306,7 +307,7 @@ export default AddMembers = ({ route, navigation }) => {
                                         <MyText
                                             text={friend.name}
                                             style={[Misc.width[80], { paddingBottom: 5 }]}
-                                            bodyTitleGilroy
+                                            bodyTitle
                                             ellipsizeMode="tail"
                                             numberOfLines={1}
                                         />
@@ -332,8 +333,8 @@ export default AddMembers = ({ route, navigation }) => {
                             <>
                                 <MyText
                                     text="My contacts"
-                                    bodyTitleGilroy
-                                    style={[styles.listTitle, { fontFamily: 'Gilroy-Bold' }]}
+                                    bodyTitle
+                                    style={[styles.listTitle, { fontFamily: 'Urbanist-Bold' }]}
                                 />
                                 {users.contacts.map((contact, idx) => (
                                     <Pressable
@@ -367,7 +368,7 @@ export default AddMembers = ({ route, navigation }) => {
                                             <MyText
                                                 text={contact.displayName}
                                                 style={[Misc.width[80], { paddingBottom: 5 }]}
-                                                bodyTitleGilroy
+                                                bodyTitle
                                                 ellipsizeMode="tail"
                                                 numberOfLines={1}
                                             />
@@ -394,8 +395,8 @@ export default AddMembers = ({ route, navigation }) => {
                         <View style={styles.listTitle}>
                             <MyText
                                 text="My contacts"
-                                bodyTitleGilroy
-                                style={[styles.listTitle, { fontFamily: 'Gilroy-Bold' }]}
+                                bodyTitle
+                                style={[styles.listTitle, { fontFamily: 'Urbanist-Bold' }]}
                             />
                             <MyText text={'Contacts permission not given'} style={{ paddingBottom: 20 }} />
                         </View>

@@ -62,7 +62,15 @@ export default Default = ({ route, navigation }) => {
     };
 
     const getGroupInfo = async () => {
-        let g = await getGroupDetails(route.params._id);
+        console.log('in getgrpinfo in groups/default', route.params);
+        let g = await getGroupDetails(route.params._id, route.params.encoded);
+
+        if (g?.error) {
+            console.log(g);
+            // setErr(g.msg);
+            return;
+        }
+
         g._id = route.params._id;
         // console.log('frn default ', g)
         updateGroup(g);
@@ -106,6 +114,11 @@ export default Default = ({ route, navigation }) => {
             ]
         });
     };
+
+    const nav = (routeParams, method = 'navigate', screenKey = null) => {
+        const params = screenKey ? [screenKey, routeParams] : [routeParams];
+        navigation[method].apply(null, params);
+    }
 
     const updateMembersAfterDelete = id => {
         let m = [...members],
@@ -181,6 +194,7 @@ export default Default = ({ route, navigation }) => {
                     group={group}
                     updateGroup={updateGroup}
                     homeNavigate={homeNavigate}
+                    navigate={nav}
                 />
             )}
             {memberInfoModal.visible && (
@@ -221,7 +235,10 @@ const MemberItem = ({ member, themeColor, balanceInfo, setMemberInfoModal, addMe
                     />
                 </>
             ) : (
-                <Pressable style={[styles.addMemberIcon, { borderColor: themeColor.med, borderWidth: 2 }]} onPress={addMembersToGroup}>
+                <Pressable
+                    style={[styles.addMemberIcon, { borderColor: themeColor.med, borderWidth: 2 }]}
+                    onPress={addMembersToGroup}
+                >
                     <Icon name="add" color={themeColor.med} size={28} />
                 </Pressable>
             )}

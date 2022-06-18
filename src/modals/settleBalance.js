@@ -15,7 +15,7 @@ export default SettleBalanceModal = ({ visible, setVisible, grpId, balance, ...r
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(false);
     const [themeColor] = useState(theme === 'dark' ? Utility.Colors.light : Utility.Colors.dark);
-    // console.log('bbb', balance);
+    console.log('bbb', themeColor, theme);
 
     const handleChange = useCallback(e => {
         setErr(null);
@@ -56,7 +56,7 @@ export default SettleBalanceModal = ({ visible, setVisible, grpId, balance, ...r
                 <View
                     style={[
                         Layout.modal.modalChildView,
-                        { backgroundColor: Utility.Colors.dark.bg ? Utility.Colors.light.bg : Utility.Colors.dark.bg }
+                        { backgroundColor: themeColor.bg === Utility.Colors.dark.bg ? Utility.Colors.light.bg : Utility.Colors.dark.bg }
                     ]}
                 >
                     <View style={[Layout.pageHeader, { width: '100%' }]}>

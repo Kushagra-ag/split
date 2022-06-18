@@ -82,7 +82,7 @@ export default SettingHome = ({ navigation }) => {
         console.log(newUser, fieldsUpdated);
         const result = await updateUserProfile(user.uid, newUser, fieldsUpdated);
 
-        if(result?.error) {
+        if (result?.error) {
             setErr(result.msg);
             setBtnDisabled(false);
         }
@@ -112,7 +112,7 @@ export default SettingHome = ({ navigation }) => {
         }
     };
 
-    const signInWithPhoneNumber = (phoneNumber) => {
+    const signInWithPhoneNumber = phoneNumber => {
         setLoading(loading => ({ ...loading, otp: true }));
 
         auth()
@@ -134,7 +134,7 @@ export default SettingHome = ({ navigation }) => {
                     setPhoneErr('Some unexpected error occured. Please check your internet connection');
                 }
             });
-    }
+    };
 
     const signOut = async () => {
         setLoading(loading => ({ ...loading, logout: true }));
@@ -150,16 +150,15 @@ export default SettingHome = ({ navigation }) => {
     };
 
     useEffect(() => {
-        getUsers([auth().currentUser.uid])
-            .then((u) => {
-                setUser(...u);
-                setNewUser({
-                    name: u[0]?.name,
-                    contact: u[0]?.contact || null,
-                    country: `${geoInfo.name} (${geoInfo.phoneCode})`
-                })
-            })
-    }, [])
+        getUsers([auth().currentUser.uid]).then(u => {
+            setUser(...u);
+            setNewUser({
+                name: u[0]?.name,
+                contact: u[0]?.contact || null,
+                country: `${geoInfo.name} (${geoInfo.phoneCode})`
+            });
+        });
+    }, []);
 
     return (
         <SafeAreaView style={Layout.safeAreaContainer}>
@@ -181,7 +180,7 @@ export default SettingHome = ({ navigation }) => {
                     <MyText text="My account" bigTitle />
                     <View style={{ paddingTop: 15 }}>
                         <View style={Misc.rows.container}>
-                            <MyText text="Dark theme" bodyTitleGilroy />
+                            <MyText text="Dark theme" bodyTitle />
                             <Switch
                                 onValueChange={toggleTheme}
                                 value={theme === 'dark' ? true : false}
@@ -205,7 +204,7 @@ export default SettingHome = ({ navigation }) => {
                         <View style={Misc.rows.container}>
                             <View style={{ flexGrow: 1 }}>
                                 <MyText text="E-mail" opacity="low" bodySubTitle />
-                                <MyText text={user?.email} opacity="low" bodyTitleGilroy />
+                                <MyText text={user?.email} opacity="low" bodyTitle />
                             </View>
                         </View>
                         <View style={Misc.rows.container}>
@@ -249,7 +248,7 @@ export default SettingHome = ({ navigation }) => {
                         <Pressable style={Misc.rows.container} onPress={() => showCountryModal(true)}>
                             <View>
                                 <MyText text="Country" opacity="low" bodySubTitle />
-                                <MyText text={newUser.country} bodyTitleGilroy />
+                                <MyText text={newUser.country} bodyTitle />
                             </View>
                         </Pressable>
                         <Divider />
@@ -261,16 +260,10 @@ export default SettingHome = ({ navigation }) => {
                             />
                         </View> */}
                         <Pressable style={Misc.rows.container} onPress={null}>
-                            <MyText
-                                text='Rate this app'
-                                bodyTitleGilroy
-                            />
+                            <MyText text="Rate this app" bodyTitle />
                         </Pressable>
                         <Pressable style={Misc.rows.container} onPress={null}>
-                            <MyText
-                                text='Contact Us'
-                                bodyTitleGilroy
-                            />
+                            <MyText text="Contact Us" bodyTitle />
                         </Pressable>
                         <Divider />
                         <View style={Misc.rows.container}>
@@ -278,7 +271,7 @@ export default SettingHome = ({ navigation }) => {
                                 <MyText
                                     text={loading.logout ? 'Logging out' : 'Log out'}
                                     opacity="low"
-                                    bodyTitleGilroy
+                                    bodyTitle
                                     red
                                 />
                             </Pressable>
@@ -334,7 +327,7 @@ const styles = StyleSheet.create({
         height: 10,
         borderRadius: 5,
         borderWidth: 1,
-        borderColor: '#fff',
+        borderColor: Utility.Colors.light.bg,
         backgroundColor: Utility.Colors.red
     }
 });

@@ -200,13 +200,13 @@ const Home = ({ navigation, route }) => {
                                                 }
                                             })
                                         }
+                                        style={[styles.addExpIcon, { borderColor: themeColor.med, borderWidth: 1, marginRight: 2 }]}
                                     >
                                         <View>
                                             <Icon
-                                                name="add-circle"
+                                                name="add"
                                                 color={themeColor.med}
-                                                size={28}
-                                                style={{ paddingRight: 1 }}
+                                                size={18}
                                             />
                                         </View>
                                     </TouchableOpacity>
@@ -263,15 +263,13 @@ const Home = ({ navigation, route }) => {
                                             }
                                         })
                                     }
+                                    style={[styles.addExpIcon, { borderColor: themeColor.med, borderWidth: 1, marginRight: 2 }]}
                                 >
-                                    <View>
                                         <Icon
-                                            name="add-circle"
+                                            name="add"
                                             color={themeColor.med}
-                                            size={28}
-                                            style={{ paddingRight: 1 }}
+                                            size={18}
                                         />
-                                    </View>
                                 </TouchableOpacity>
                             </View>
                         ))
@@ -325,7 +323,7 @@ const styles = StyleSheet.create({
         height: 12,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: '#fff',
+        borderColor: Utility.Colors.light.bg,
         backgroundColor: Utility.Colors.red,
         bottom: 0,
         right: 5
@@ -337,6 +335,14 @@ const styles = StyleSheet.create({
     },
     grpHeading: {
         paddingBottom: 5
+    },
+    addExpIcon: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        overflow: 'hidden'
     }
 });
 

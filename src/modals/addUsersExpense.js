@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import MyText from '../components/myText';
 import MyTextInput from '../components/myTextInput';
-import { Textfield, Layout, Misc } from '../styles';
+import { Utility, Layout, Misc } from '../styles';
 
 export default AddUsersExpenseModal = ({
     visible,
@@ -22,7 +22,7 @@ export default AddUsersExpenseModal = ({
     updateUsers,
     users,
     themeColor,
-    splitEqual,
+    addAllUsers,
     ...rest
 }) => {
     // console.log('ss',allUsers)
@@ -60,7 +60,8 @@ export default AddUsersExpenseModal = ({
                 <ScrollView
                     style={[
                         {
-                            backgroundColor: themeColor.bg === '#272727' ? '#fff' : '#272727',
+                            backgroundColor:
+                                themeColor.bg === '#272727' ? Utility.Colors.light.bg : Utility.Colors.dark.bg,
                             maxHeight: height / 2,
                             borderTopRightRadius: 20,
                             borderTopLeftRadius: 20
@@ -69,7 +70,7 @@ export default AddUsersExpenseModal = ({
                     contentContainerStyle={Layout.modal.modalChildView}
                 >
                     <View style={[Layout.pageHeader, { width: '100%' }]}>
-                        <MyText text="Choose a memberrr" bodyTitle style={{ fontFamily: 'PlayfairDisplay-Bold' }} />
+                        <MyText text="Choose a member" bodyTitle style={{ fontFamily: 'PlayfairDisplay-Bold' }} />
                         <TouchableOpacity
                             onPress={() => {
                                 setVisible(false);
@@ -78,7 +79,7 @@ export default AddUsersExpenseModal = ({
                             <Icon name="close-circle" color={themeColor.med} size={28} />
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity style={Misc.rows.container} onPress={() => splitEqual(true)}>
+                    <TouchableOpacity style={Misc.rows.container} onPress={addAllUsers}>
                         <View style={Misc.rows.itemLeftGrow}>
                             <MyText
                                 text="Add all users"

@@ -131,17 +131,20 @@ export default Expenses = ({ currency, netBal, _id, relUserId, navigation }) => 
                         flexDirection: 'row',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        paddingHorizontal: 0
+                        paddingHorizontal: 0,
+                        borderTopWidth: 1,
+                        borderColor: themeColor.med
                     }
                 ]}
             >
                 <View>
                     <MyText text="Total spendings" style={{ textAlign: 'left' }} subTitle />
-                    <MyText text={`${currency} ${netBal}`} opacity="low" style={{ textAlign: 'left' }} subTitle />
+                    <MyText text={`${currency} ${netBal}`} opacity="low" style={{ textAlign: 'left', fontWeight: 'bold' }} subTitle />
                 </View>
                 <PrimaryBtn
                     title="Expense"
                     icon={{ name: 'add' }}
+                    viewStyle={{paddingVertical: 15}}
                     onPress={() =>
                         navigation.navigate('expenses', {
                             screen: 'default',
@@ -282,7 +285,7 @@ const SubText = ({ role, iBal, currency }) => {
                 opacity="low"
                 {...(role === 'payee' ? { green: true } : role === 'receiver' ? { red: true } : null)}
                 style={{ textAlign: 'right' }}
-                bodyTitleGilroy
+                bodyTitle
             />
         </>
     );

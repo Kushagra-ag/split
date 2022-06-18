@@ -2,8 +2,6 @@ import React, { useState, useEffect, useContext, useMemo, useCallback } from 're
 import {
     View,
     Image,
-    SafeAreaView,
-    ScrollView,
     StyleSheet,
     TouchableOpacity,
     FlatList,
@@ -16,6 +14,7 @@ import { ThemeContext } from '../../../../../themeContext';
 import MyText from '../../../../../components/myText';
 import MyTextInput from '../../../../../components/myTextInput';
 import { getUsers } from '../../../../../methods/user';
+import { splitEqual } from '../../../../../methods/misc';
 import { AddUsersExpenseModal } from '../../../../../modals';
 import { OutlineBtn, PrimaryBtn } from '../../../../../components/buttons';
 import { Layout, Utility, Typography, Textfield, Misc } from '../../../../../styles';
@@ -78,55 +77,30 @@ export default PaidBy = ({ currency, amt, users, setPaidSettled, usersPaid, setU
     };
 
     // Checking the possibilities of only decimal values
-    const onBlur = (userId) => {
+    const onBlur = userId => {
         let n = usersPaid.length,
-            u = [...usersPaid], mulDec=0;
-        
-            while(n--) {
-                if(u[n]._id === userId) {
-                    [...u[n].val].forEach(c => {if(c!=='.') mulDec += 1})
-                    if(mulDec === 0) {
-                        u[n].val = '0';
-                    } else {
-                        u[n].val = parseFloat(u[n].val).toFixed(2);
-                    }
-                    setUsersPaid(u);
+            u = [...usersPaid],
+            mulDec = 0;
+
+        while (n--) {
+            if (u[n]._id === userId) {
+                [...u[n].val].forEach(c => {
+                    if (c !== '.') mulDec += 1;
+                });
+                if (mulDec === 0) {
+                    u[n].val = '0';
+                } else {
+                    u[n].val = parseFloat(u[n].val).toFixed(2);
                 }
-            }
-    }
-
-    const splitEqual = (addAll = false) => {
-        console.log(usersPaid);
-        let u = addAll ? [...members] : [...usersPaid],
-            n = u.length;
-        const share = parseFloat(amt / n).toFixed(2);
-
-        u.forEach(user => {
-            user.val = share;
-        });
-
-        const diff = (parseFloat(share) * n).toFixed(2) - amt;
-        console.log(diff.toFixed(2));
-
-        if (diff) {
-            if (diff > 0) {
-                let k = parseInt((parseFloat(diff) * 100).toFixed(2));
-
-                while (k--) {
-                    u[k].val = (parseFloat(u[k].val) - 0.01).toFixed(2);
-                }
-            } else if (diff < 0) {
-                let k = -parseInt((parseFloat(diff) * 100).toFixed(2));
-
-                while (k--) {
-                    u[k].val = (parseFloat(u[k].val) + 0.01).toFixed(2);
-                }
+                setUsersPaid(u);
             }
         }
+    };
 
-        setUsersPaid(usersPaid => u);
-
-        addAll ? showUserModal(false) : null;
+    const addAllUsers = () => {
+        const u = splitEqual(members, amt);
+        setUsersPaid(u);
+        showUserModal(false);
     };
 
     const removeUser = userId => {
@@ -173,7 +147,7 @@ export default PaidBy = ({ currency, amt, users, setPaidSettled, usersPaid, setU
                                 {usersPaid.length > 1 && (
                                     <OutlineBtn
                                         title="Split equally"
-                                        onPress={() => splitEqual(false)}
+                                        onPress={() => setUsersPaid(splitEqual(usersPaid, amt))}
                                         style={{ flexGrow: 1 }}
                                     />
                                 )}
@@ -203,7 +177,7 @@ export default PaidBy = ({ currency, amt, users, setPaidSettled, usersPaid, setU
                         users={usersPaid}
                         updateUsers={setUsersPaid}
                         themeColor={themeColor}
-                        splitEqual={splitEqual}
+                        addAllUsers={addAllUsers}
                     />
                 )}
             </KeyboardAvoidingView>
@@ -213,7 +187,7 @@ export default PaidBy = ({ currency, amt, users, setPaidSettled, usersPaid, setU
 
 const MemberItem = ({ user, usersPaidLen, currency, onChangeVal, onBlur, removeUser, themeColor }) => {
     return (
-        <View style={[Misc.rows.container, { paddingVertical: 15 }]} key={user._id}>
+        <View style={[Misc.rows.container, { paddingVertical: 15 }]}>
             <Image
                 {...(user.photoURL
                     ? { source: { uri: user.photoURL } }
@@ -264,10 +238,10 @@ const SubText = ({ amt, sum, currency, setPaidSettled }) => {
         setEqual(amt == sum);
         amt == sum ? setPaidSettled(true) : setPaidSettled(false);
         // console.log((amt - sum), isNaN(amt - sum))
-        if(isNaN(amt - sum)) {
-            setHideSubtext(true)
+        if (isNaN(amt - sum)) {
+            setHideSubtext(true);
         } else {
-            setHideSubtext(false)
+            setHideSubtext(false);
         }
         // return e
     }, [sum, amt]);
@@ -284,7 +258,7 @@ const SubText = ({ amt, sum, currency, setPaidSettled }) => {
                 }
                 opacity="low"
                 {...(equal ? { green: true } : { red: true })}
-                style={[hideSubtext && {display: 'none'}]}
+                style={[hideSubtext && { display: 'none' }]}
                 bodySubTitle
             />
         </>

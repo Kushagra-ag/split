@@ -196,7 +196,6 @@ export default Default = ({ route, navigation }) => {
     };
 
     const delExpense = () => {
-
         const deleteConfirm = async () => {
             const e = await deleteExpense(route.params._id, route.params.expId, auth().currentUser.uid);
 
@@ -209,17 +208,13 @@ export default Default = ({ route, navigation }) => {
             navigation.goBack();
         };
 
-        Alert.alert(
-            '',
-            `Are you sure you want to delete this expense?`,
-            [
-                {
-                    text: 'Cancel',
-                    onPress: () => null
-                },
-                { text: 'Yes', onPress: deleteConfirm }
-            ]
-        );
+        Alert.alert('', `Are you sure you want to delete this expense?`, [
+            {
+                text: 'Cancel',
+                onPress: () => null
+            },
+            { text: 'Yes', onPress: deleteConfirm }
+        ]);
     };
 
     useEffect(() => {
