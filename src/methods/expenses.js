@@ -94,6 +94,7 @@ export const getExpenses = async (grpId, endAt) => {
  *  @param {string} type - Enum('standard', 'recurring')
  *  @param {string} uid - Current user uid
  *  @returns {(object | void)}
+ *  donee
  */
 
 export const addExpense = async ({
@@ -161,7 +162,6 @@ export const addExpense = async ({
     const _id = nanoid();
 
     const newExpense = {
-        // _id,
         ts: date,
         title,
         desc,
@@ -172,12 +172,6 @@ export const addExpense = async ({
         distFlowArr: JSON.stringify(distFlowArr),
         bal: JSON.stringify(groupParams.indBalance)
     };
-    // const grpUpdates = {
-    //     cashFlowArr: JSON.stringify(groupParams.newCashFlowArr),
-    //     balances: JSON.stringify(groupParams.grpBalance),
-    //     netBal: netBal + amt,
-    //     lastActive: Date.now()
-    // }
 
     let updates = {};
     updates[`/groups/${grpId}/cashFlowArr`] = JSON.stringify(groupParams.newCashFlowArr);
@@ -198,20 +192,20 @@ export const addExpense = async ({
     e = await database
         .ref()
         .update(updates)
-        .then(() => console.log('Updated!'))
+        .then(() => ({error: false, msg: 'Expense added'}))
         .catch(e => ({ error: true, msg: 'Please check your internet connection', e }));
 
     return e;
 };
 
-export const editExpense = async ({expId, grpId, expense}) => {
-
+// not completed, added individual checks in the backend repo
+export const editExpense = async ({ expId, grpId, expense }) => {
     const res = await database
         .ref(`/expenses/${grpId}/${expId}`)
         .update(expense)
-        .then(() => console.log('updated'))
+        .then(() => ({error: false, msg: 'Expense added'}))
         .catch(() => ({ error: true, msg: 'Please check your internet connection', e }));
-}
+};
 
 /**
  *  Method to delete expense
@@ -219,6 +213,7 @@ export const editExpense = async ({expId, grpId, expense}) => {
  *  @param {string} grpId - The group id for the expense
  *  @param {string} expId - The expense Id
  *  @returns {(object | void)}
+ *  donee
  */
 
 export const deleteExpense = async (grpId, expId, uid) => {

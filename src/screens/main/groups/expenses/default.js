@@ -7,11 +7,10 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { Layout, Utility, Typography, Textfield, Misc, Button } from '../../../../styles';
 import MyText from '../../../../components/myText';
 import MyTextInput from '../../../../components/myTextInput';
+import reqHandler from '../../../../methods/reqHandler';
 import { OutlineBtn, PrimaryBtn } from '../../../../components/buttons';
 import { ThemeContext } from '../../../../themeContext';
 import { addExpense, getExpense, deleteExpense } from '../../../../methods/expenses';
-import { getGroupDetails } from '../../../../methods/groups';
-import { getUsers } from '../../../../methods/user';
 import { calcBalanceDist } from '../../../../methods/misc';
 
 export default Default = ({ route, navigation }) => {
@@ -59,7 +58,22 @@ export default Default = ({ route, navigation }) => {
             // console.log(expDetails);
 
             // let group = await getGroupDetails(route.params._id);
-            let members = await getUsers(Object.keys(group.members));
+
+            let members = await reqHandler({
+                action: 'getUsers',
+                apiUrl: 'users',
+                method: 'POST',
+                params: {
+                    users: Object.keys(group.members)
+                }
+            });
+    
+            if(members?.error) {
+                setErr(members.msg);
+                return;
+            }
+    
+            members = members.userInfo;
 
             const bal = calcBalanceDist(
                 members,
@@ -178,12 +192,29 @@ export default Default = ({ route, navigation }) => {
             cur,
             grpId: route.params._id,
             amt: parseFloat(amt),
-            uid: auth().currentUser.uid
+            uId: auth().currentUser.uid
         };
 
         console.log(newExpense);
 
-        e = await addExpense(newExpense);
+        // e = await addExpense(newExpense);
+        e = await reqHandler({
+            action: 'addExpense',
+            apiUrl: 'expenses',
+            method: 'POST',
+            params: {
+                ...expense,
+                usersPaid,
+                usersSplit,
+                relUserId,
+                netBal,
+                cashFlowArr,
+                cur,
+                grpId: route.params._id,
+                amt: parseFloat(amt),
+                uId: auth().currentUser.uid
+            }
+        });
         setLoading(false);
 
         if (e?.error) {
@@ -197,7 +228,17 @@ export default Default = ({ route, navigation }) => {
 
     const delExpense = () => {
         const deleteConfirm = async () => {
-            const e = await deleteExpense(route.params._id, route.params.expId, auth().currentUser.uid);
+            const e = await reqHandler({
+                action: 'deleteExpense',
+                apiUrl: 'expenses',
+                method: 'POST',
+                params: {
+                    grpId: route.params._id,
+                    expId: route.params.expId,
+                    uId: auth().currentUser.uid
+                }
+            });
+            // const e = await deleteExpense(route.params._id, route.params.expId, auth().currentUser.uid);
 
             if (e?.error) {
                 console.log(e);
@@ -218,7 +259,18 @@ export default Default = ({ route, navigation }) => {
     };
 
     useEffect(() => {
-        getGroupDetails(route.params._id).then(g => {
+        reqHandler({
+            action: 'getGroupDetails',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                grpId: route.params._id
+            }
+        }).then(g => {
+            if(g?.error) {
+                setErr(g.msg);
+                return
+            };
             setGroup(g);
         });
     }, []);
@@ -248,7 +300,6 @@ export default Default = ({ route, navigation }) => {
                     <MyText text="Title" opacity="low" bodySubTitle />
                     <MyTextInput
                         style={Textfield.field}
-                        clearButtonMode="while-editing"
                         placeholder="Add title here"
                         value={expense.title}
                         onChangeText={e => handleChange(e, 'title')}
@@ -259,7 +310,6 @@ export default Default = ({ route, navigation }) => {
                     <MyText text="Description" opacity="low" bodySubTitle />
                     <MyTextInput
                         style={Textfield.field}
-                        clearButtonMode="while-editing"
                         placeholder="Add description here"
                         value={expense.desc}
                         onChangeText={e => handleChange(e, 'desc')}
@@ -270,7 +320,6 @@ export default Default = ({ route, navigation }) => {
                         <View style={Misc.rows.itemLeftGrow}>
                             <MyTextInput
                                 style={Textfield.bigField}
-                                clearButtonMode="while-editing"
                                 keyboardType="phone-pad"
                                 placeholder="0.00"
                                 value={expense.amt}

@@ -14,10 +14,10 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { ThemeContext } from '../../../../../themeContext';
 import MyText from '../../../../../components/myText';
 import MyTextInput from '../../../../../components/myTextInput';
+import reqHandler from '../../../../../methods/reqHandler';
 import { AddUsersExpenseModal } from '../../../../../modals';
 import { OutlineBtn, PrimaryBtn } from '../../../../../components/buttons';
 import { Layout, Utility, Typography, Textfield, Misc } from '../../../../../styles';
-import { getUsers } from '../../../../../methods/user';
 import { splitEqual } from '../../../../../methods/misc';
 
 export default SplitBetween = ({ currency, amt, users, setSplitSettled, usersSplit, setUsersSplit }) => {
@@ -28,11 +28,20 @@ export default SplitBetween = ({ currency, amt, users, setSplitSettled, usersSpl
     const [members, setMembers] = useState(null);
 
     const getGrpMembers = async () => {
-        let m = await getUsers(users);
+        let m = await reqHandler({
+            action: 'getUsers',
+            apiUrl: 'users',
+            method: 'POST',
+            params: {
+                users
+            }
+        });
+
         if (m?.error) {
             setErr(m.msg);
             return;
         }
+        m = m.userInfo;
         setMembers(m);
 
         if (usersSplit.length === 0) {
@@ -214,7 +223,6 @@ const MemberItem = ({ user, usersSplitLen, currency, onChangeVal, onBlur, remove
                 <MyText text={currency} opacity="low" />
                 <MyTextInput
                     style={[Textfield.field, { flexGrow: 0, maxWidth: 100 }]}
-                    clearButtonMode="while-editing"
                     selectTextOnFocus={true}
                     keyboardType="phone-pad"
                     placeholder=""

@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { ThemeContext } from '../../../../../themeContext';
 import MyText from '../../../../../components/myText';
 import MyTextInput from '../../../../../components/myTextInput';
-import { getUsers } from '../../../../../methods/user';
+import reqHandler from '../../../../../methods/reqHandler';
 import { splitEqual } from '../../../../../methods/misc';
 import { AddUsersExpenseModal } from '../../../../../modals';
 import { OutlineBtn, PrimaryBtn } from '../../../../../components/buttons';
@@ -28,11 +28,23 @@ export default PaidBy = ({ currency, amt, users, setPaidSettled, usersPaid, setU
 
     const getGrpMembers = async () => {
         // const usersArr = Object.keys(group.members);
-        let m = await getUsers(users);
+        
+        let m = await reqHandler({
+            action: 'getUsers',
+            apiUrl: 'users',
+            method: 'POST',
+            params: {
+                users
+            }
+        });
+
         if (m?.error) {
             setErr(m.msg);
             return;
         }
+
+        m = m.userInfo;
+
         setMembers(m);
 
         if (usersPaid.length === 0) {
@@ -217,7 +229,6 @@ const MemberItem = ({ user, usersPaidLen, currency, onChangeVal, onBlur, removeU
                 <MyText text={currency} opacity="low" />
                 <MyTextInput
                     style={[Textfield.field, Misc.width[75], { flexGrow: 0, maxWidth: 100 }]}
-                    clearButtonMode="while-editing"
                     selectTextOnFocus={true}
                     keyboardType="phone-pad"
                     placeholder=""

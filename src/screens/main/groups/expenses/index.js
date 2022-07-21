@@ -1,7 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Default from './default';
-// import AddExpense from './addExpense';
 import ExpenseDistribution from './expenseDistribution';
 
 const newExpenseStack = createNativeStackNavigator();

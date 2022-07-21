@@ -7,6 +7,7 @@ import { Button, Typography, Utility } from '../../styles';
 
 const PrimaryBtn = ({
     title,
+    size = 'large',
     onPress = null,
     icon = false,
     loading = false,
@@ -22,7 +23,7 @@ const PrimaryBtn = ({
         <TouchableOpacity onPress={onPress} activeOpacity={0.6} disabled={disabled} style={style}>
             <View
                 style={[
-                    Button.btn,
+                    Button.btnSize[size],
                     Button.primary[theme],
                     styles.container,
                     disabled && { backgroundColor: Utility.Colors[txtColor].low },
@@ -41,7 +42,7 @@ const PrimaryBtn = ({
                 {loading ? (
                     <ActivityIndicator size="small" style={{ paddingVertical: 1 }} color={Utility.Colors[theme].high} />
                 ) : (
-                    <MyText text={title} style={[Typography[txtColor], splash && Typography.dark]} btnText />
+                    <MyText text={title} style={[Typography[txtColor], splash && Typography.dark]} button={{ size }} />
                 )}
             </View>
         </TouchableOpacity>

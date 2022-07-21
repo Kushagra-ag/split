@@ -7,6 +7,7 @@ import { Button, Typography, Utility } from '../../styles';
 
 const OutlineBtn = ({
     title,
+    size = 'large',
     onPress = null,
     icon = false,
     loading = false,
@@ -22,7 +23,7 @@ const OutlineBtn = ({
         <TouchableOpacity onPress={onPress} activeOpacity={0.6} disabled={disabled} style={style}>
             <View
                 style={[
-                    Button.btn,
+                    Button.btnSize[size],
                     Button.outline[theme],
                     styles.container,
                     disabled && { opacity: 0.3 },
@@ -45,7 +46,7 @@ const OutlineBtn = ({
                         color={Utility.Colors[txtColor].high}
                     />
                 ) : (
-                    <MyText text={title} style={[Typography[theme], splash && Typography.dark]} btnText />
+                    <MyText text={title} style={[Typography[theme], splash && Typography.dark]} button={{ size }} />
                 )}
             </View>
         </TouchableOpacity>

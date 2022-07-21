@@ -6,7 +6,7 @@ import MyText from '../components/myText';
 import MyTextInput from '../components/myTextInput';
 import { PrimaryBtn, RedBtn } from '../components/buttons';
 import { settleBalance } from '../methods/expenses';
-import { removeGroupMember } from '../methods/groups';
+import reqHandler from '../methods/reqHandler';
 import { Textfield, Layout, Utility, Misc } from '../styles';
 
 export default groupMemberInfoModal = ({
@@ -18,7 +18,7 @@ export default groupMemberInfoModal = ({
     relUserId,
     grpId,
     updateMembersAfterDelete,
-    homeNavigate
+    navigate
 }) => {
     const [err, setErr] = useState(null);
     const [u] = useState(auth().currentUser.uid);
@@ -69,7 +69,15 @@ export default groupMemberInfoModal = ({
             });
 
         const deleteConfirm = async () => {
-            const e = await removeGroupMember(member._id, grpId);
+            const e = await reqHandler({
+                action: 'removeGroupMember',
+                apiUrl: 'groups',
+                method: 'POST',
+                params: {
+                    grpId,
+                    userId: member._id
+                }
+            });
             setTrashBtnLoading(false);
             setLoading(false);
 
@@ -80,7 +88,17 @@ export default groupMemberInfoModal = ({
 
             if (self) {
                 setVisible(false);
-                homeNavigate();
+                navigate(
+                    {
+                        index: 0,
+                        routes: [
+                            {
+                                name: 'home'
+                            }
+                        ]
+                    },
+                    'reset'
+                );
                 return;
             }
 
@@ -194,7 +212,6 @@ export default groupMemberInfoModal = ({
                                 <MyTextInput
                                     value={settleUpInput.value}
                                     style={[Textfield.field, { width: '100%' }]}
-                                    clearButtonMode="while-editing"
                                     keyboardType="phone-pad"
                                     onChangeText={handleAmtChange}
                                 />

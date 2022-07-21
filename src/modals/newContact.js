@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MyText from '../components/myText';
 import MyTextInput from '../components/myTextInput';
 import { PrimaryBtn } from '../components/buttons';
-import { checkNewGuestUser } from '../methods/user';
+import reqHandler from '../methods/reqHandler';
 import { Textfield, Layout, Utility } from '../styles';
 
 export default NewContactModal = ({
@@ -113,11 +113,20 @@ export default NewContactModal = ({
 
         setLoading(true);
 
-        const user = await checkNewGuestUser(userDetails, true);
+        let user = await reqHandler({
+            action: 'checkNewGuestUser',
+            apiUrl: 'users',
+            method: 'POST',
+            params: {
+                passedUser: userDetails,
+                flag: true
+            }
+        });
 
-        if (!user) {
+        setLoading(false);
+
+        if (!user.user) {
             setErr('Cannot save user. Try again later');
-            setLoading(false);
             return;
         }
 
@@ -132,9 +141,9 @@ export default NewContactModal = ({
             contact: '',
             email: ''
         });
-        setLoading(false);
+
         setVisible(false);
-        setSelectedUsers(selectedUsers => [...selectedUsers, user]);
+        setSelectedUsers(selectedUsers => [...selectedUsers, user.user]);
     };
 
     return (
@@ -160,7 +169,6 @@ export default NewContactModal = ({
                     {/*<MyText text="Name" opacity="low" bodySubTitle />*/}
                     <MyTextInput
                         style={[Textfield.field, { width: '100%' }]}
-                        clearButtonMode="while-editing"
                         placeholder="Add name"
                         value={userDetails.name}
                         onChangeText={e => handleChange(e, 'name')}
@@ -178,7 +186,6 @@ export default NewContactModal = ({
                             <MyTextInput
                                 keyboardType="phone-pad"
                                 style={[Textfield.field, { maxWidth: '75%', minWidth: '75%' }]}
-                                clearButtonMode="while-editing"
                                 placeholder="Mobile (with country code)"
                                 value={userDetails.contact}
                                 onChangeText={e => handleChange(e, 'contact')}
@@ -189,7 +196,6 @@ export default NewContactModal = ({
                             <MyTextInput
                                 keyboardType="email-address"
                                 style={[Textfield.field, { maxWidth: '75%', minWidth: '75%' }]}
-                                clearButtonMode="while-editing"
                                 placeholder="Enter your email"
                                 value={userDetails.email}
                                 onChangeText={e => handleChange(e, 'email')}

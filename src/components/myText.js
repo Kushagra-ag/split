@@ -25,10 +25,9 @@ export default MyText = ({
     subTitle,
     bodyTitle,
     bodySubTitle,
-    btnText,
+    button,
     expenseDate,
     error,
-    splashText,
     red,
     green,
     light,
@@ -38,7 +37,7 @@ export default MyText = ({
 }) => {
     const { theme } = useContext(ThemeContext);
     const color = theme === 'light' ? Utility.Colors.dark[opacity] : Utility.Colors.light[opacity];
-    
+
     return (
         <Text
             {...rest}
@@ -51,12 +50,11 @@ export default MyText = ({
                 menuItem && Typography.menuItem,
                 bodyTitle && Typography.body.title,
                 bodySubTitle && Typography.body.subTitle,
-                btnText && Button.btnText,
+                button && Button['btnText'][button.size],
                 expenseDate && Typography.expenseDate,
                 error && Typography.errorText,
                 red && Typography.red,
                 green && Typography.green,
-                splashText && Typography.splashText,
                 light && { color: Utility.Colors.light[opacity] },
                 dark && { color: Utility.Colors.dark[opacity] },
                 { letterSpacing },

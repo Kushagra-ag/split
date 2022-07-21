@@ -6,6 +6,7 @@
  * @flow strict-local
  */
 
+import { GOOGLE_WEB_CLIENT_ID } from '@env';
 import React, { useEffect, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
@@ -18,7 +19,7 @@ import Main from './src/screens/main';
 import ThemeProvider from './src/themeContext';
 
 GoogleSignin.configure({
-    webClientId: '339463650314-pi097teo4aho0rshm4ulid1jeoqdp0ek.apps.googleusercontent.com',
+    webClientId: GOOGLE_WEB_CLIENT_ID,
     offlineAccess: false
 });
 
@@ -41,7 +42,7 @@ const linking = {
                         screens: {
                             index: 0,
                             joinGroup: {
-                                path: 'join/:grpId',
+                                path: 'join/:grpId'
                             }
                         }
                     }
@@ -70,16 +71,16 @@ const App = () => {
     // };
 
     return (
-            <ThemeProvider>
-                <NavigationContainer theme={navTheme} linking={linking}>
-                    <Stack.Navigator initialRouteName="splash" screenOptions={{ headerShown: false }}>
-                        <Stack.Screen name="onboarding" component={Onboarding} />
-                        <Stack.Screen name="splash" component={Splash} />
-                        <Stack.Screen name="registration" component={Registration} />
-                        <Stack.Screen name="default" component={Main} />
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </ThemeProvider>
+        <ThemeProvider>
+            <NavigationContainer theme={navTheme} linking={linking}>
+                <Stack.Navigator initialRouteName="splash" screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="onboarding" component={Onboarding} />
+                    <Stack.Screen name="splash" component={Splash} />
+                    <Stack.Screen name="registration" component={Registration} />
+                    <Stack.Screen name="default" component={Main} />
+                </Stack.Navigator>
+            </NavigationContainer>
+        </ThemeProvider>
     );
 };
 

@@ -136,7 +136,6 @@ export default MobileSaveOTP = ({ visible, setVisible, newUser, setNewUser, conf
                     <MyTextInput
                         value={code}
                         style={[Textfield.field, { width: '100%' }]}
-                        clearButtonMode="while-editing"
                         keyboardType="phone-pad"
                         placeholder="Enter OTP"
                         onChangeText={text => handleCodeChange(text)}

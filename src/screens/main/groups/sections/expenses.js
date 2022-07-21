@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import { ThemeContext } from '../../../../themeContext';
 import MyText from '../../../../components/myText';
-import { getExpenses, deleteExpense } from '../../../../methods/expenses';
+import { getExpenses } from '../../../../methods/expenses';
 import { PrimaryBtn } from '../../../../components/buttons';
 import { Misc, Utility, Button } from '../../../../styles';
 
@@ -139,12 +139,17 @@ export default Expenses = ({ currency, netBal, _id, relUserId, navigation }) => 
             >
                 <View>
                     <MyText text="Total spendings" style={{ textAlign: 'left' }} subTitle />
-                    <MyText text={`${currency} ${netBal}`} opacity="low" style={{ textAlign: 'left', fontWeight: 'bold' }} subTitle />
+                    <MyText
+                        text={`${currency} ${netBal}`}
+                        opacity="low"
+                        style={{ textAlign: 'left', fontWeight: 'bold' }}
+                        subTitle
+                    />
                 </View>
                 <PrimaryBtn
                     title="Expense"
                     icon={{ name: 'add' }}
-                    viewStyle={{paddingVertical: 15}}
+                    size="small"
                     onPress={() =>
                         navigation.navigate('expenses', {
                             screen: 'default',

@@ -17,9 +17,10 @@ import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MyText from '../../../components/myText';
 import MyTextInput from '../../../components/myTextInput';
+import reqHandler from '../../../methods/reqHandler';
 import { MobileSaveOTP, CountrySelectModal } from '../../../modals';
 import { removeItemLocal, setItemLocal, getItemLocal } from '../../../methods/localStorage';
-import { updateUserProfile, getUsers } from '../../../methods/user';
+import { updateUserProfile } from '../../../methods/user';
 import { Layout, Textfield, Utility, Misc, Button } from '../../../styles';
 import { ThemeContext } from '../../../themeContext';
 import { PrimaryBtn } from '../../../components/buttons';
@@ -150,14 +151,30 @@ export default SettingHome = ({ navigation }) => {
     };
 
     useEffect(() => {
-        getUsers([auth().currentUser.uid]).then(u => {
+        reqHandler({
+            action: 'getUsers',
+            apiUrl: 'users',
+            method: 'POST',
+            params: {
+                users: [auth().currentUser.uid]
+            }
+        }).then(u => {
+            if(u?.error) {
+                setErr(u.msg);
+                return
+            }
+    
+            u = u.userInfo;
             setUser(...u);
             setNewUser({
                 name: u[0]?.name,
                 contact: u[0]?.contact || null,
                 country: `${geoInfo.name} (${geoInfo.phoneCode})`
             });
-        });
+        })
+        .catch(e => {
+            setErr('Please check your internet connection')
+        })
     }, []);
 
     return (
@@ -168,7 +185,7 @@ export default SettingHome = ({ navigation }) => {
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
-                <KeyboardAvoidingView behavior="position">
+                <KeyboardAvoidingView behavior="height">
                     <View style={[styles.photo, { borderColor: themeColor.high }]}>
                         <Image
                             source={{ uri: user?.photoURL }}
@@ -177,7 +194,7 @@ export default SettingHome = ({ navigation }) => {
                             style={[styles.img]}
                         />
                     </View>
-                    <MyText text="My account" bigTitle />
+                    <MyText text="My account" title />
                     <View style={{ paddingTop: 15 }}>
                         <View style={Misc.rows.container}>
                             <MyText text="Dark theme" bodyTitle />
@@ -192,11 +209,11 @@ export default SettingHome = ({ navigation }) => {
                         <View style={Misc.rows.container}>
                             <View style={{ flexGrow: 1 }}>
                                 <MyText text="Name" opacity="low" bodySubTitle />
+                                {/* <MyText text="kushagra agarwal" bodyTitle /> */}
                                 <MyTextInput
-                                    style={Textfield.field}
-                                    clearButtonMode="while-editing"
+                                    style={[Textfield.field, {paddingVertical: 0}]}
                                     maxLength={50}
-                                    value={newUser.name}
+                                    value={newUser.name || 'loading...'}
                                     onChangeText={e => updateUser(e, 'name')}
                                 />
                             </View>
@@ -204,20 +221,19 @@ export default SettingHome = ({ navigation }) => {
                         <View style={Misc.rows.container}>
                             <View style={{ flexGrow: 1 }}>
                                 <MyText text="E-mail" opacity="low" bodySubTitle />
-                                <MyText text={user?.email} opacity="low" bodyTitle />
+                                <MyText text={user?.email || 'loading...'} opacity="low" bodyTitle />
                             </View>
                         </View>
                         <View style={Misc.rows.container}>
                             <View style={{ flexGrow: 1, maxWidth: '70%' }}>
                                 <View style={{ flexDirection: 'row' }}>
                                     <MyText text="Phone number" opacity="low" bodySubTitle />
-                                    {user?.phoneNumber ? null : <View style={styles.notif}></View>}
+                                    {user?.contact ? null : <View style={styles.notif}></View>}
                                 </View>
                                 <MyTextInput
                                     // ref={phoneRef}
                                     keyboardType="phone-pad"
-                                    style={[Textfield.field]}
-                                    clearButtonMode="while-editing"
+                                    style={[Textfield.field, {paddingVertical: 0}]}
                                     value={newUser.contact ?? ''}
                                     placeholder="Mobile Number"
                                     onFocus={phoneFieldFocus}
@@ -251,6 +267,16 @@ export default SettingHome = ({ navigation }) => {
                                 <MyText text={newUser.country} bodyTitle />
                             </View>
                         </Pressable>
+                        <Pressable style={Misc.rows.container} onPress={() => navigation.navigate('paymentMethods', {
+                            
+                                // paymentMethods: JSON.parse(user.paymentMethods)
+                                paymentMethods: {upi:['asd', 'sdfdf'], wallets:[{merchant: 'paytm', contact: '676767'}]}
+                            
+                        })}>
+                            <View>
+                                <MyText text="Payment modes" bodyTitle />
+                            </View>
+                        </Pressable>
                         <Divider />
                         {/* <View style={Misc.rows.container}>
                             <MyText
@@ -268,12 +294,7 @@ export default SettingHome = ({ navigation }) => {
                         <Divider />
                         <View style={Misc.rows.container}>
                             <Pressable onPress={signOut}>
-                                <MyText
-                                    text={loading.logout ? 'Logging out' : 'Log out'}
-                                    opacity="low"
-                                    bodyTitle
-                                    red
-                                />
+                                <MyText text={loading.logout ? 'Logging out' : 'Log out'} opacity="low" bodyTitle red />
                             </Pressable>
                             {loading.logout && (
                                 <View>
@@ -326,8 +347,8 @@ const styles = StyleSheet.create({
         width: 10,
         height: 10,
         borderRadius: 5,
-        borderWidth: 1,
-        borderColor: Utility.Colors.light.bg,
+        // borderWidth: 1,
+        // borderColor: Utility.Colors.light.bg,
         backgroundColor: Utility.Colors.red
     }
 });

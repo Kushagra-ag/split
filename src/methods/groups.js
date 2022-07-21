@@ -1,9 +1,10 @@
+import { API_ENDPOINT } from '@env';
 import 'react-native-get-random-values';
 import { Buffer } from 'buffer';
 import { nanoid } from 'nanoid';
 import { database } from './config';
 import { checkNewGuestUser, getUsers } from './user';
-import { getFriendsData } from './misc';
+import { updateFriendsData, splitEqual } from './misc';
 import { getItemLocal } from './localStorage';
 
 /**
@@ -17,23 +18,26 @@ import { getItemLocal } from './localStorage';
  *  @param {string} status - Enum('active', 'pending_deletion')
  *  @param {number} noOfExp - No of expenses
  *	@returns {(Object | void)}
+ donee
  */
 
-const createGroup = async (
+const createGroup = async ({
     name,
     ownerId,
     users = [],
     newUsersData = [],
-    defaults = null,
     defaultGrp = false,
     status = 'active',
     noOfExp = 0,
     netBal = 0
-) => {
+}) => {
     if (!name || !ownerId) return { error: true, msg: 'Could not complete your request', e: 'Invalid parameters' };
+    if (!users.length) return { error: true, msg: 'No users are selected', e: 'Users array empty in createGroup' };
 
     const n = users.length;
-    let e = null;
+    let e = null,
+        defaults = null,
+        defaultConfig = {};
 
     // Initializing an array of length n with zeroes
     const cashFlowArr = JSON.stringify(Array(n).fill(0));
@@ -43,7 +47,16 @@ const createGroup = async (
         lastActive = ts,
         inviteLink = `https://unigma.page.link/group/join/${Buffer.from(grpId, 'utf8').toString('base64')}`;
     const { currencySymbol } = await getItemLocal('userGeo');
-    console.log('inside creategrp', inviteLink);
+
+    // configuring default split for each member
+    defaults = splitEqual(
+        users.map(u => ({ _id: u })),
+        100
+    );
+    console.log(defaults);
+    defaults.forEach(user => {
+        defaultConfig[user._id] = user.val;
+    });
 
     // Check default grp collision
     defaultGrp && (e = await setDeafultGrp(ownerId, grpId));
@@ -54,7 +67,7 @@ const createGroup = async (
         name,
         ownerId,
         status,
-        // defaultConfig: defaults,
+        defaultConfig,
         noOfExp,
         netBal,
         ts,
@@ -84,7 +97,7 @@ const createGroup = async (
     });
 
     // Update the friends attribute
-    let { fUpdates, fErr } = await getFriendsData(ownerId, updatedUsers, removeUserFriends);
+    let { fUpdates, fErr } = await updateFriendsData(ownerId, updatedUsers, removeUserFriends);
     if (fErr?.error) return fErr;
 
     const finalUpdates = { ...updates, ...u, ...fUpdates };
@@ -121,6 +134,7 @@ const createGroup = async (
  *	@param {array} users - The array of all user ids to be added to the group
  *  @param {string} grpId - The group id
  *	@returns {object} An object containing the updated user ids list and calculated updates
+ *  donee
  */
 
 const addUsersToGroup = async (users, newUsersData = [], grpId) => {
@@ -190,6 +204,7 @@ const addUsersToGroup = async (users, newUsersData = [], grpId) => {
  *  @param {string} grpId - The group id
  *  @param {boolean} setDefault - Flag indicating to set or unset a default group for the user
  *  @returns {(object | void)}
+ *  donee
  */
 
 const setDeafultGrp = async (userId, grpId, setDefault = true) => {
@@ -241,7 +256,7 @@ const setDeafultConfig = async (userId, grpId, config) => {
     let u = await database
         .ref(`/groups/${grpId}/defaultConfig`)
         .update(config)
-        .catch(e => ({ error: true, msg: 'Please check your internet connection', e }))
+        .catch(e => ({ error: true, msg: 'Please check your internet connection', e }));
 
     return u;
 };
@@ -251,6 +266,7 @@ const setDeafultConfig = async (userId, grpId, config) => {
  *
  *  @param {string} grpId - The group id
  *  @returns {(object | void)}
+ *  donee
  */
 
 const getGroupDetails = async grpId => {
@@ -294,6 +310,7 @@ const updateGroupDetails = async (grpId, newGroup, updateFields) => {
  *  @param {object} newUsersData - Basic info of new (non-existing) users, if any
  *  @param {string} grpId - The group id
  *  @returns {(object | void)}
+ *  donee
  */
 
 const addGroupMembers = async (users, uId, newUsersData, grpId) => {
@@ -337,7 +354,7 @@ const addGroupMembers = async (users, uId, newUsersData, grpId) => {
                     i = i + 1;
 
                     // update the friend list
-                    let { fUpdates, fErr } = await getFriendsData(
+                    let { fUpdates, fErr } = await updateFriendsData(
                         userId,
                         Array.from(new Set([uId, ...updatedUsers, ...existingMembersId])),
                         removeUserFriends
@@ -376,6 +393,7 @@ const addGroupMembers = async (users, uId, newUsersData, grpId) => {
  *  @param {string} userId - The user's uid
  *  @param {string} grpId - The group id
  *  @returns {(object | void)}
+ * donee
  */
 
 const removeGroupMember = async (userId, grpId) => {
@@ -431,6 +449,7 @@ const removeGroupMember = async (userId, grpId) => {
  *  @param {string} encodedGrpId - The user's uid (base64 encoded)
  *  @param {string} userId - The user's uid
  *  @returns {(object | void)}
+ * donee
  */
 
 const joinGroupInfo = async (encodedGrpId, userId) => {
@@ -479,6 +498,7 @@ const joinGroupInfo = async (encodedGrpId, userId) => {
  *
  *  @param {string} grpId - The group id
  *  @returns {(object | void)}
+ *  donee
  */
 
 const deleteGroup = async grpId => {

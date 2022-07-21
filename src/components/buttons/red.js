@@ -7,6 +7,7 @@ import { Button, Typography, Utility } from '../../styles';
 
 const RedBtn = ({
     title,
+    size = 'large',
     onPress = null,
     icon = false,
     loading = false,
@@ -21,7 +22,7 @@ const RedBtn = ({
         <TouchableOpacity onPress={onPress} activeOpacity={0.6} disabled={disabled}>
             <View
                 style={[
-                    Button.btn,
+                    Button.btnSize[size],
                     Button.red,
                     styles.container,
                     // disabled && { backgroundColor: Utility.Colors[txtColor].low },
@@ -40,7 +41,7 @@ const RedBtn = ({
                 {loading ? (
                     <ActivityIndicator size="small" style={{ paddingVertical: 1 }} color={Utility.Colors.light.high} />
                 ) : (
-                    <MyText text={title} style={[Typography.dark]} btnText />
+                    <MyText text={title} style={[Typography.dark]} button={{ size }} />
                 )}
             </View>
         </TouchableOpacity>

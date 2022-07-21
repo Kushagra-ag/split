@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 // import auth from '@react-native-firebase/auth';
 import { ThemeContext } from '../../../../themeContext';
 import MyText from '../../../../components/myText';
-import { getUsers } from '../../../../methods/user';
+import reqHandler from '../../../../methods/reqHandler';
 import { testF } from '../../../../methods/misc';
 import { settleBalance } from '../../../../methods/expenses';
 import { PrimaryBtn } from '../../../../components/buttons';
@@ -48,7 +48,14 @@ export default Balances = ({ _id, users, currency, cashFlowArr, netBal, balanceI
     }, []);
 
     const getGrpMembers = async () => {
-        let m = await getUsers(users),
+        let m = await reqHandler({
+            action: 'getUsers',
+            apiUrl: 'users',
+            method: 'POST',
+            params: {
+                users
+            }
+        }),
             slices = [],
             b = [...balanceInfo],
             othersPercent = 100;
@@ -57,7 +64,7 @@ export default Balances = ({ _id, users, currency, cashFlowArr, netBal, balanceI
             setErr(m.msg);
             return;
         }
-
+        m = m.userInfo;
         const n = users.length;
 
         let numbers = Array(15)
@@ -313,7 +320,6 @@ const BalanceItem = ({ grpId, item, currency, setSettleBalanceModal, theme }) =>
                                     key={idx}
                                     opacity="low"
                                     subTitle
-
                                 />
                                 <View>
                                     <Icon

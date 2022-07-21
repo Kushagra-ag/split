@@ -1,3 +1,4 @@
+import { API_ENDPOINT } from '@env';
 import { firebase as fb } from '@react-native-firebase/functions';
 import { firebase, database } from './config';
 import { setItemLocal, removeItemLocal } from './localStorage';
@@ -9,9 +10,10 @@ import { setItemLocal, removeItemLocal } from './localStorage';
  *  @param {array} users - The array of all group member ids (make sure to include the ownerId too)
  *  @param {array} removeUsers - The array of obsolete ids that need to be removed from user's friend list
  *  @returns {object} Object of subsequent updates
+ * donee
  */
 
-export const getFriendsData = async (ownerId, users, removeUsers = []) => {
+export const updateFriendsData = async (ownerId, users, removeUsers = []) => {
     // removeItemLocal('userFriends');
     let n = users.length,
         fData = [],
@@ -154,6 +156,11 @@ export const syncFriendsLocal = userId => {
                 };
 
                 setItemLocal(item);
+            } else {
+                setItemLocal({
+                    key: 'userFriends',
+                    value: []
+                })
             }
         });
 };
@@ -164,6 +171,7 @@ export const syncFriendsLocal = userId => {
  *  @param {number} x - Number 1
  *  @param {number} y - Number 2
  *  @returns {number}
+ * donee
  */
 
 function minOf2(x, y) {
@@ -176,6 +184,7 @@ function minOf2(x, y) {
  *  @param {number} bal - The initial balance object
  *  @param {array} cfa - The exisiting cashFlowArr array
  *  @returns {void}
+ * donee
  */
 
 const finalBal = (bal, cfa) => {
@@ -210,6 +219,7 @@ const finalBal = (bal, cfa) => {
  *  @param {object} tx - The transaction object
  *  @param {array} cfa - The exisiting cashFlowArr array
  *  @returns {object} - The updated cashFlowArr, updated group balance object and expense balance object
+ * donee
  */
 
 export const calcNewExpense = (tx, cfa) => {
@@ -255,7 +265,7 @@ export const calcNewExpense = (tx, cfa) => {
 
 export const calcBalanceDist = (userArr, balancesJSON, relUserId, cashFlowArr, currency, uid) => {
     // let balSummary = [], balances = {};
-    // console.log('kk', arguments);
+    console.log('kk', userArr);
 
     let userArray = [...userArr];
 
@@ -290,6 +300,8 @@ export const calcBalanceDist = (userArr, balancesJSON, relUserId, cashFlowArr, c
         item.bal.figure = myBal ? (myBal > 0 ? myBal : -myBal) : 0;
         item.bal.color = item.bal.figure == 0 ? null : myBal > 0 ? { green: true } : { red: true };
         // item.balSummary = [];
+
+        console.log('-----------------', item)
 
         if (!myBal || myBal === 0) {
             console.log('settled up!');
@@ -372,6 +384,7 @@ export const calcBalanceDist = (userArr, balancesJSON, relUserId, cashFlowArr, c
  *  Method to return various profile field values checks
  *
  *  @returns {object} - Test methods for each user profile field
+ *  donee
  */
 
 export const profileChecks = () => {
@@ -405,6 +418,7 @@ export const profileChecks = () => {
     return { userNameCheck, userEmailCheck, userCountryCheck };
 };
 
+// donee
 export const groupChecks = () => {
     const grpNameCheck = name => {
         name = name.trim();
@@ -445,19 +459,20 @@ export const groupChecks = () => {
  *
  *  @param {boolean} addAll - Flag to indicate whether to add all users
  *  @returns {array} - The updated array or object
+ *  donee - don't delete
  */
 
 export const splitEqual = (users, amt) => {
-    
     let u = [...users],
-        n = u.length;
+        n = u.length,
+        config = {};
     // console.log('users - ', users, 'members - ', members)
     const share = parseFloat(amt / n).toFixed(2);
 
     u.forEach(user => {
         user.val = share;
     });
-    
+
     const diff = (parseFloat(share) * n).toFixed(2) - amt;
     console.log(diff.toFixed(2));
 
@@ -476,7 +491,6 @@ export const splitEqual = (users, amt) => {
             }
         }
     }
-    console.log('fkng', u)
     return u;
 };
 
@@ -485,6 +499,7 @@ export const splitEqual = (users, amt) => {
  *
  *  @param {(object|void)} o - Array or object to be sanitized
  *  @returns {(object|void)} - The updated array or object
+ *  donee
  */
 
 export const sanitizeObject = o => {
@@ -516,6 +531,8 @@ export const sanitizeObject = o => {
     return _o;
 };
 
+// donee
+
 export const addNullTx = cashFlowArr => {
     const nullTx = {
         sum: 0,
@@ -526,14 +543,4 @@ export const addNullTx = cashFlowArr => {
     return calcNewExpense(nullTx, cashFlowArr);
 };
 
-export const testF = async () => {
-    // let updates = {};
-    // updates[`/users/tnuPW76MBecpTa6BkQizB4881XJ3/lastActive`] = firebase.database.ServerValue.increment(2);
-    // const a = await database
-    //     .ref()
-    //     .update(updates);
-    // console.log('as', a);
-    fb.functions().useEmulator('10.0.2.2', 5001);
-    const { data } = await fb.functions().httpsCallable('groups-getGrp');
-    console.log('bb', data);
-};
+export const testF = async () => {};

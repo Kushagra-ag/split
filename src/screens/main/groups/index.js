@@ -15,7 +15,7 @@ export default Settings = ({ navigation }) => {
             <groupStack.Screen name="newGroup" component={NewGroup} />
             <groupStack.Screen name="expenses" component={Expenses} />
             <groupStack.Screen name="joinGroup" component={JoinGroup} />
-            <groupStack.Screen name='setDefaultConfig' component={SetDefaultConfig} />
+            <groupStack.Screen name="setDefaultConfig" component={SetDefaultConfig} />
         </groupStack.Navigator>
     );
 };

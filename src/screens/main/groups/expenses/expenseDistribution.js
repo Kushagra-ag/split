@@ -59,7 +59,6 @@ export default ExpenseDistribution = ({ route, navigation }) => {
                         <MyText text={route.params.group?.currency} opacity="low" />
                         <MyTextInput
                             style={[Textfield.field, { textAlign: 'right', flexGrow: 0 }]}
-                            clearButtonMode="while-editing"
                             keyboardType="phone-pad"
                             selectTextOnFocus={true}
                             placeholder=""

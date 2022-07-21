@@ -4,10 +4,11 @@ import auth from '@react-native-firebase/auth';
 import CheckBox from '@react-native-community/checkbox';
 import MyText from '../../../../components/myText';
 import MyTextInput from '../../../../components/myTextInput';
+import reqHandler from '../../../../methods/reqHandler';
 import { PrimaryBtn } from '../../../../components/buttons';
 import { ThemeContext } from '../../../../themeContext';
-import { syncFriendsLocal } from '../../../../methods/misc';
 import { Layout, Utility, Typography, Textfield, Misc, Button } from '../../../../styles';
+import { setItemLocal } from '../../../../methods/localStorage';
 
 export default NewGroup = ({ navigation }) => {
     const { theme } = useContext(ThemeContext);
@@ -34,7 +35,28 @@ export default NewGroup = ({ navigation }) => {
     };
 
     useEffect(() => {
-        syncFriendsLocal(auth().currentUser.uid);
+        reqHandler({
+            action: 'syncUserFriends',
+            apiUrl: 'users',
+            method: 'POST',
+            params: {
+                uId: auth().currentUser.uid
+            }
+        })
+        .then(friends => {
+            if(friends?.error) {
+                // fail silently
+                return
+            };
+    
+            setItemLocal({
+                key: 'userFriends',
+                value: friends.item
+            });
+        })
+        .catch(() => null);
+
+        
     });
 
     return (
@@ -50,7 +72,6 @@ export default NewGroup = ({ navigation }) => {
                     <MyText text="Name" opacity="low" bodySubTitle />
                     <MyTextInput
                         style={Textfield.field}
-                        clearButtonMode="while-editing"
                         maxLength={50}
                         placeholder="Add title here"
                         value={group.title}
@@ -62,7 +83,6 @@ export default NewGroup = ({ navigation }) => {
                     <MyText text="Description" opacity="low" bodySubTitle />
                     <MyTextInput
                         style={Textfield.field}
-                        clearButtonMode="while-editing"
                         maxLength={80}
                         placeholder="Add description here"
                         value={group.desc}

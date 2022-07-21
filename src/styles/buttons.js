@@ -1,16 +1,37 @@
 import { StyleSheet } from 'react-native';
 import * as Utility from './utility';
 
-export default StyleSheet.create({
-    btn: {
-        paddingHorizontal: 20,
-        paddingVertical: 20,
+const btn = {
+    base: {
         borderRadius: Utility.BtnBorderRadius,
-        textAlign: 'center'
+        textAlign: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 20
+    },
+    text: {
+        fontFamily: 'Urbanist-Medium'
+    }
+};
+
+export default StyleSheet.create({
+    btnSize: {
+        large: {
+            ...btn.base
+        },
+        small: {
+            ...btn.base,
+            paddingVertical: 12
+        }
     },
     btnText: {
-        fontFamily: 'Urbanist-Medium',
-        fontSize: 18
+        large: {
+            ...btn.text,
+            fontSize: 18
+        },
+        small: {
+            ...btn.text,
+            fontSize: 16
+        }
     },
     primary: {
         light: {

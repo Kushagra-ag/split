@@ -1,3 +1,4 @@
+import { API_ENDPOINT } from '@env';
 import 'react-native-get-random-values';
 import { firebase } from '@react-native-firebase/database';
 import * as RNLocalize from 'react-native-localize';
@@ -5,7 +6,6 @@ import { nanoid } from 'nanoid';
 import { database } from './config';
 import { profileChecks, syncFriendsLocal } from './misc';
 import { getItemLocal, setItemLocal, removeItemLocal } from './localStorage';
-import Geo from '../geo';
 
 /**
  *	Method to add/update user in firebase
@@ -18,28 +18,36 @@ import Geo from '../geo';
 const userSignIn = async (user, setGeoInfo) => {
     if (!user || !setGeoInfo) return { error: true, msg: 'Invalid parameters', e: 'Invalid parameters' };
 
+    user.email = user.email.toLowerCase();
     console.log('in userSignIn', user);
     // removeItemLocal('userFriends');
 
-    let currencyCode = RNLocalize.getCurrencies();
-    let countryCode = RNLocalize.getLocales();
+    let res,
+        currencyCode = RNLocalize.getCurrencies(),
+        countryCode = RNLocalize.getLocales();
     currencyCode = currencyCode[0] || 'INR';
     countryCode = countryCode[0].countryCode || 'IN';
     // console.log(Currency[currency]);
 
-    const geo = {
-        ...Geo.country[countryCode],
-        currency: currencyCode,
-        currencySymbol: Geo.currency[currencyCode]
-    };
+    try {
+        res = await fetch(`${API_ENDPOINT}/users`, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'getGeoInfo',
+                countryCode,
+                currencyCode
+            })
+        });
+        res = await res.json();
 
-    console.log(geo);
-
-    setItemLocal({
-        key: 'userGeo',
-        value: geo
-    });
-    setGeoInfo(geo);
+        setItemLocal({
+            key: 'userGeo',
+            value: res
+        });
+        setGeoInfo(res);
+    } catch (e) {
+        setErr(e => ({ e, global: 'Something went wrong' }));
+    }
 
     const userId = user.uid;
     let e,
@@ -131,6 +139,7 @@ const userSignIn = async (user, setGeoInfo) => {
  *
  *  @param {array} users - Array of userIDs
  *  @returns {array}
+ * donee
  */
 
 const getUsers = async (users = []) => {
@@ -170,6 +179,8 @@ const getUsers = async (users = []) => {
 
 const updateUserProfile = async (userId, newUser, updateFields) => {
     if (!userId || !newUser) return { error: true, msg: 'Invalid parameters', e: 'Invalid parameters' };
+
+    if (newUser.email) newUser.email = newUser.email.toLowerCase();
 
     const fieldTests = profileChecks();
     let n = updateFields.length,
@@ -260,6 +271,7 @@ const getUserGroups = async userId => {
  *
  *  @param {string} exp - The matching expression
  *  @return {array}
+ *  No need to migrate
  */
 
 const getUserFriends = async (exp = '') => {
@@ -313,6 +325,7 @@ const saveGuestMembers = members => {
  *  @param {string} contact - Contact of the custom user
  *  @param {string} name - Name of the custom user
  *  @return {object} Either the existing firebase user or the newly created guest user
+ *  donee
  */
 
 const checkNewGuestUser = async (passedUser, flag = false) => {
@@ -357,47 +370,6 @@ const checkNewGuestUser = async (passedUser, flag = false) => {
                 newUser: true
             };
             return newUser;
-
-            // checking for guest user
-            // const res = await database
-            //     .ref(`/users/guests`)
-            //     .orderByChild('contact')
-            //     .equalTo(contact)
-            //     .once('value')
-            //     .then(guest => {
-            //         guest = guest._snapshot.value;
-            //         console.log('guest user', guest);
-
-            //         if(guest) {
-
-            //             const _id = Object.keys(guest)[0];
-            //             let guestUser = {
-            //                 _id,
-            //                 type: 'guest',
-            //                 name: guestUser[_id].name,
-            //                 contact: guestUser[_id].contact,
-            //                 photo: null,
-            //                 email: null,
-            //             };
-            //             return guestUser;
-            //         }
-
-            //         const userId = nanoid();
-            //         const newUser = {
-            //             _id: userId,
-            //             type: 'contact',
-            //             contact,
-            //             name,
-            //             photo: null,
-            //             email: null,
-            //         };
-            //         return newUser;
-            //     })
-            //     .catch(e => {
-            //         console.log('ee', e);
-            //         return null;
-            //     });
-            // return res;
         })
         .catch(e => {
             console.log('errrr', e);

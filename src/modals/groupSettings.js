@@ -13,12 +13,12 @@ import {
 } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/Ionicons';
+import reqHandler from '../methods/reqHandler';
 import MyText from '../components/myText';
 import MyTextInput from '../components/myTextInput';
 import Divider from '../components/divider';
-import { removeGroupMember, setDeafultGrp, deleteGroup } from '../methods/groups';
+import { removeGroupMember, deleteGroup } from '../methods/groups';
 import { Textfield, Layout, Misc, Utility } from '../styles';
-import { NavigationContainer } from '@react-navigation/native';
 
 export default GroupSettingsModal = ({
     visible,
@@ -27,7 +27,6 @@ export default GroupSettingsModal = ({
     updateGroup,
     themeColor,
     addMembersToGroup,
-    homeNavigate,
     navigate,
     ...rest
 }) => {
@@ -63,7 +62,17 @@ export default GroupSettingsModal = ({
             defGrp = false;
         }
         //call to update firebase
-        const e = await setDeafultGrp(user, group._id, defGrp);
+        let e = await reqHandler({
+            action: 'setDeafultGrp',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                grpId: group._id,
+                user,
+                defGrp
+            }
+        });
+
         if (e?.error) {
             setErr(e.msg);
             return;
@@ -82,7 +91,7 @@ export default GroupSettingsModal = ({
             const result = await Share.share(
                 {
                     title: 'Share the invite code with your friends',
-                    message: `Join my group on Split. Click here - ${grp.inviteLink}`
+                    message: `Join my group on Split. Click here - https://unigma.page.link/group/join/${grp.inviteLink}`
                 },
                 {
                     dialogTitle: 'Invite link'
@@ -110,12 +119,16 @@ export default GroupSettingsModal = ({
         const delGrp = Object.keys(grp.members).length === 1 ? true : false;
 
         const leaveGrpConfirm = async () => {
-            if (delGrp) {
-                deleteGroup();
-                return;
-            }
+            const e = await reqHandler({
+                action: 'removeGroupMember',
+                apiUrl: 'groups',
+                method: 'POST',
+                params: {
+                    grpId: group._id,
+                    userId: auth().currentUser.uid
+                }
+            });
 
-            const e = await removeGroupMember(auth().currentUser.uid, group._id);
             setLoading(loading => ({ ...loading, leaveGrp: false }));
 
             if (e?.error) {
@@ -123,15 +136,32 @@ export default GroupSettingsModal = ({
                 return;
             }
 
-            // homeNavigate();
-            navigate({
-                index: 0,
-                routes: [
-                    {
-                        name: 'home'
+            navigate(
+                {
+                    index: 0,
+                    routes: [
+                        {
+                            name: 'home'
+                        }
+                    ]
+                },
+                'reset'
+            );
+
+            if (delGrp) {
+                const e = await reqHandler({
+                    action: 'deleteGroup',
+                    apiUrl: 'groups',
+                    method: 'POST',
+                    params: {
+                        grpId: grp._id,
                     }
-                ]
-            }, 'reset');
+                });
+
+                if(e?.error) {
+                    // fail silently
+                }
+            }
         };
 
         Alert.alert(
@@ -154,7 +184,14 @@ export default GroupSettingsModal = ({
         setErr(null);
 
         const deleteGroupConfirm = async () => {
-            const e = await deleteGroup(grp._id);
+            const e = await reqHandler({
+                action: 'deleteGroup',
+                apiUrl: 'groups',
+                method: 'POST',
+                params: {
+                    grpId: grp._id,
+                }
+            });
             setLoading(loading => ({ ...loading, deleteGrp: false }));
 
             if (e?.error) {
@@ -163,15 +200,17 @@ export default GroupSettingsModal = ({
                 return;
             }
 
-            // homeNavigate();
-            navigate({
-                index: 0,
-                routes: [
-                    {
-                        name: 'home'
-                    }
-                ]
-            }, 'reset')
+            navigate(
+                {
+                    index: 0,
+                    routes: [
+                        {
+                            name: 'home'
+                        }
+                    ]
+                },
+                'reset'
+            );
         };
 
         const cashFlowArr = JSON.parse(grp.cashFlowArr);
@@ -247,7 +286,6 @@ export default GroupSettingsModal = ({
                             ref={nameFieldRef}
                             style={[Textfield.field, { flexGrow: 0 }]}
                             editable={grpNameEditable}
-                            clearButtonMode="while-editing"
                             onChangeText={text => handleChange('name', text)}
                         />
                         <Pressable
@@ -293,13 +331,16 @@ export default GroupSettingsModal = ({
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        onPress={() => navigate({
-                                _id: grp._id
-                        }, 'navigate', 'setDefaultConfig')}
-                        style={[
-                            Misc.rows.container,
-                            styles.menuItem,
-                        ]}
+                        onPress={() =>
+                            navigate(
+                                {
+                                    _id: grp._id
+                                },
+                                'navigate',
+                                'setDefaultConfig'
+                            )
+                        }
+                        style={[Misc.rows.container, styles.menuItem]}
                     >
                         <MyText text="Set default distribution" menuItem />
                     </TouchableOpacity>

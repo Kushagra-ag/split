@@ -1,22 +1,13 @@
-import React, { useState, useEffect, useContext, useMemo, useRef } from 'react';
-import {
-    View,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Pressable,
-    ActivityIndicator,
-    Image,
-    PermissionsAndroid,
-    KeyboardAvoidingView,
-    FlatList
-} from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, SafeAreaView, ScrollView, StyleSheet, Image } from 'react-native';
 import auth from '@react-native-firebase/auth';
 import { ThemeContext } from '../../../themeContext';
 import MyText from '../../../components/myText';
 import { PrimaryBtn } from '../../../components/buttons';
+import reqHandler from '../../../methods/reqHandler';
+import { getItemLocal } from '../../../methods/localStorage';
 import { joinGroupInfo, addGroupMembers } from '../../../methods/groups';
-import { Layout, Utility, Button, Typography, Textfield, Misc } from '../../../styles';
+import { Layout, Utility, Button, Misc } from '../../../styles';
 
 export default JoinGroup = ({ navigation, route }) => {
     const { theme } = useContext(ThemeContext);
@@ -29,8 +20,15 @@ export default JoinGroup = ({ navigation, route }) => {
     useEffect(() => {
         console.log(route.params);
 
-        joinGroupInfo(route.params.grpId, user)
-            .then(res => {
+        reqHandler({
+            action: 'joinGroupInfo',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                encodedGrpId: route.params.grpId,
+                userId: user
+            }
+        }).then(async res => {
                 if (res.e === 'Already a member') {
                     navigation.reset({
                         index: 1,
@@ -53,13 +51,42 @@ export default JoinGroup = ({ navigation, route }) => {
                     return;
                 }
 
-                setGrp(res);
+                let users = res.grpMembers;
+                const userIds = users.filter(u => u._id);
+                
+                // calculating common friends
+                const userFriends = await getItemLocal('userFriends');
+                if (userFriends && userFriends.length > 0) {
+                    const userFriendsIds = userFriends.filter(u => u._id);
+                    userIds.forEach((u, idx) => {
+                        const k = userFriendsIds.indexOf(u);
+                        if (k !== -1) {
+                            users.splice(idx, 1);
+                            users = [userFriends[k], ...users];
+                        }
+                    });
+                }
+                console.log('ccccc', users);
+                setGrp({...res, commonFriends: users});
             })
-            .catch(e => console.log(e));
+            .catch(e => setErr('Something went wrong. Could not join group'));
     }, []);
 
     const joinGroup = async () => {
-        const e = await addGroupMembers([user], user, [], grp._id);
+        setLoading(true);console.log('kkkkk', grp)
+        // const e = await addGroupMembers([user], user, [], grp._id);
+        const e = await reqHandler({
+            action: 'addGroupMembers',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                users: [user],
+                uId: user,
+                newUsersData: [],
+                grpId: grp._id
+            }
+        });
+        setLoading(false);
 
         if (e?.error) {
             console.log(e);

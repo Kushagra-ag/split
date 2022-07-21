@@ -61,13 +61,5 @@ export default StyleSheet.create({
         color: Utility.Colors.red,
         paddingBottom: 15,
         textAlign: 'center'
-    },
-    splashText: {
-        fontFamily: 'Urbanist-Regular',
-        color: Utility.Colors.light.low,
-        fontSize: 20,
-        paddingBottom: 30,
-        opacity: 0.25,
-        letterSpacing: 15
     }
 });

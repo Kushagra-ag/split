@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Contacts from 'react-native-contacts';
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/Ionicons';
+import reqHandler from '../../../../methods/reqHandler';
 import MyText from '../../../../components/myText';
 import MyTextInput from '../../../../components/myTextInput';
 import { PrimaryBtn } from '../../../../components/buttons';
@@ -23,8 +24,7 @@ import { getUserFriends } from '../../../../methods/user';
 import { NewContactModal } from '../../../../modals';
 import { Layout, Utility, Typography, Textfield, Misc, Button } from '../../../../styles';
 import { ThemeContext } from '../../../../themeContext';
-import { createGroup } from '../../../../methods/groups';
-import { removeItemLocal } from '../../../../methods/localStorage';
+import { getItemLocal, setItemLocal } from '../../../../methods/localStorage';
 
 export default AddMembers = ({ route, navigation }) => {
     const { theme, geoInfo } = useContext(ThemeContext);
@@ -143,23 +143,49 @@ export default AddMembers = ({ route, navigation }) => {
         //     }
     };
 
-    const SkipMembers = async () => {
+    const skipMembers = async () => {
         setLoading(true);
         setErr(err => ({ ...err, global: null }));
 
-        const { title, desc, defaultGrp } = route.params.details;
-        const userId = auth().currentUser.uid;
+        const { title, desc, defaultGrp } = route.params.details,
+            userId = auth().currentUser.uid,
+            { currencySymbol } = await getItemLocal('userGeo');
 
-        const res = await createGroup(title, userId, [userId], [], null, defaultGrp, 'active', 0);
+        let res = await reqHandler({
+            action: 'createGroup',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                name: title,
+                desc,
+                ownerId: userId,
+                users: [userId],
+                newUsersData: [],
+                currency: currencySymbol,
+                defaultGrp
+            }
+        });
+
+        // const res = await createGroup(title, userId, [userId], [], null, defaultGrp, 'active', 0);
         setLoading(false);
 
-        if (res?.error) {
+        if (res?.error || res?.errorMessage) {
             console.log(res);
             setErr(err => ({ ...err, global: res.msg }));
             return;
         }
 
-        const { _id } = res;
+        const { _id, fLocalNew } = res;
+        console.log('iddd', _id);
+
+        // updating local friends
+        let localFriends = await getItemLocal('userFriends');
+        const newLocalFriends = localFriends.concat(fLocalNew);
+        
+        setItemLocal({
+            key: 'userFriends',
+            value: newLocalFriends
+        });
 
         navigation.reset({
             index: 1,
@@ -233,7 +259,6 @@ export default AddMembers = ({ route, navigation }) => {
                     <Icon name="search" color={Utility.Colors[themeColor].low} size={24} />
                     <MyTextInput
                         placeholder="Start typing to search"
-                        clearButtonMode="while-editing"
                         style={[Misc.search.searchField, Misc.width[85]]}
                         value={query}
                         onChangeText={e => handleSearch(e)}
@@ -266,7 +291,7 @@ export default AddMembers = ({ route, navigation }) => {
                             <MyText
                                 text="Friends on Split"
                                 bodyTitle
-                                style={[styles.listTitle, { fontFamily: 'Urbanist-Bold'}]}
+                                style={[styles.listTitle, { fontFamily: 'Urbanist-Bold' }]}
                                 letterSpacing={0}
                             />
                             {users.friends.map((friend, idx) => (
@@ -412,7 +437,7 @@ export default AddMembers = ({ route, navigation }) => {
                             contactPerm
                                 ? route.params.mode === 'modify'
                                     ? () => navigation.goBack()
-                                    : SkipMembers
+                                    : skipMembers
                                 : askPermission
                         }
                         loading={loading}

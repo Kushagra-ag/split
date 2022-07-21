@@ -14,13 +14,12 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import auth from '@react-native-firebase/auth';
-import { getUsers } from '../../../methods/user';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MyText from '../../../components/myText';
 import { Layout, Utility, Typography, Misc } from '../../../styles';
 import { ThemeContext } from '../../../themeContext';
-import { getGroupDetails } from '../../../methods/groups';
 import { calcBalanceDist } from '../../../methods/misc';
+import reqHandler from '../../../methods/reqHandler';
 import Expenses from './sections/expenses';
 import Balances from './sections/balances';
 import { GroupSettingsModal, GroupMemberInfoModal } from '../../../modals';
@@ -39,6 +38,7 @@ export default Default = ({ route, navigation }) => {
         member: null
     });
     const [balanceInfo, setBalanceInfo] = useState(null);
+    const [err, setErr] = useState(null);
 
     // const height = Dimensions.get('window').height;
     // const width = Dimensions.get('window').width;
@@ -50,7 +50,23 @@ export default Default = ({ route, navigation }) => {
 
     const getMembers = async group => {
         const usersArr = Object.keys(group.members);
-        let m = await getUsers(usersArr);
+
+        let m = await reqHandler({
+            action: 'getUsers',
+            apiUrl: 'users',
+            method: 'POST',
+            params: {
+                users: usersArr
+            }
+        });
+
+        if(m?.error) {
+            setErr(m.msg);
+            return
+        }
+
+        m = m.userInfo;
+        console.log('sjdnchbvhbvdvbv hcbvsdhgv', m)
 
         group.balances && calcBal(m, group.balances, group.relUserId, group.cashFlowArr, group.cur);
 
@@ -63,10 +79,18 @@ export default Default = ({ route, navigation }) => {
 
     const getGroupInfo = async () => {
         console.log('in getgrpinfo in groups/default', route.params);
-        let g = await getGroupDetails(route.params._id, route.params.encoded);
+
+        let g = await reqHandler({
+            action: 'getGroupDetails',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                grpId: route.params._id
+            }
+        });
 
         if (g?.error) {
-            console.log(g);
+            // console.log(g);
             // setErr(g.msg);
             return;
         }
@@ -104,21 +128,21 @@ export default Default = ({ route, navigation }) => {
         navigation.navigate('newGroup', { screen: 'addMembers', params: { mode: 'modify', grpId: route.params._id } });
     };
 
-    const homeNavigate = () => {
-        navigation.reset({
-            index: 0,
-            routes: [
-                {
-                    name: 'home'
-                }
-            ]
-        });
-    };
+    // const homeNavigate = () => {
+    //     navigation.reset({
+    //         index: 0,
+    //         routes: [
+    //             {
+    //                 name: 'home'
+    //             }
+    //         ]
+    //     });
+    // };
 
     const nav = (routeParams, method = 'navigate', screenKey = null) => {
         const params = screenKey ? [screenKey, routeParams] : [routeParams];
         navigation[method].apply(null, params);
-    }
+    };
 
     const updateMembersAfterDelete = id => {
         let m = [...members],
@@ -147,7 +171,13 @@ export default Default = ({ route, navigation }) => {
         <SafeAreaView style={Layout.safeAreaContainer}>
             <View style={[Layout.scrollViewContainer]}>
                 <View style={Layout.pageHeader}>
-                    <MyText text={group?.name} title ellipsizeMode="tail" numberOfLines={1} style={Misc.width[80]} />
+                    <MyText
+                        text={group?.name || 'loading...'}
+                        title
+                        ellipsizeMode="tail"
+                        numberOfLines={1}
+                        style={Misc.width[80]}
+                    />
                     <TouchableOpacity onPress={() => showSettingsModal(true)}>
                         <Icon name="settings" color={themeColor.med} size={24} />
                     </TouchableOpacity>
@@ -193,7 +223,6 @@ export default Default = ({ route, navigation }) => {
                     themeColor={themeColor}
                     group={group}
                     updateGroup={updateGroup}
-                    homeNavigate={homeNavigate}
                     navigate={nav}
                 />
             )}
@@ -204,7 +233,7 @@ export default Default = ({ route, navigation }) => {
                     relUserId={group.relUserId}
                     grpId={route.params._id}
                     updateMembersAfterDelete={updateMembersAfterDelete}
-                    homeNavigate={homeNavigate}
+                    navigate={nav}
                     {...memberInfoModal}
                 />
             )}

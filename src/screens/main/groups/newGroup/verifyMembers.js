@@ -15,11 +15,12 @@ import {
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { ThemeContext } from '../../../../themeContext';
+import reqHandler from '../../../../methods/reqHandler';
 import MyText from '../../../../components/myText';
-import MyTextInput from '../../../../components/myTextInput';
 import { PrimaryBtn } from '../../../../components/buttons';
-import { Layout, Utility, Typography, Textfield, Misc, Button } from '../../../../styles';
-import { createGroup, addGroupMembers } from '../../../../methods/groups';
+import { Layout, Utility, Misc, Button } from '../../../../styles';
+// import { createGroup, addGroupMembers } from '../../../../methods/groups';
+import { getItemLocal, setItemLocal } from '../../../../methods/localStorage';
 
 export default VerifyMembers = ({ navigation, route }) => {
     const { theme } = useContext(ThemeContext);
@@ -63,7 +64,8 @@ export default VerifyMembers = ({ navigation, route }) => {
     const createNewGroup = async () => {
         setLoading(true);
         setErr(false);
-        const { title, desc, defaultGrp } = route.params.details;
+        const { title, desc, defaultGrp } = route.params.details,
+            { currencySymbol } = await getItemLocal('userGeo');
 
         let newUsersData = members.filter(m => {
             if (m.type === 'friend' || m.type === 'standard') {
@@ -76,18 +78,21 @@ export default VerifyMembers = ({ navigation, route }) => {
 
         let users = members.map(m => m._id);
         users.push(auth().currentUser.uid);
-        console.log('all users', users);
 
-        const res = await createGroup(
-            title,
-            auth().currentUser.uid,
-            users,
-            newUsersData,
-            null,
-            defaultGrp,
-            'active',
-            0
-        );
+        let res = await reqHandler({
+            action: 'createGroup',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                name: title,
+                users,
+                newUsersData,
+                defaultGrp,
+                ownerId: auth().currentUser.uid,
+                currency: currencySymbol
+            }
+        });
+
         setLoading(false);
 
         if (res?.error) {
@@ -95,7 +100,16 @@ export default VerifyMembers = ({ navigation, route }) => {
             return;
         }
 
-        const { _id } = res;
+        const { _id, fLocalNew } = res;
+
+        let localFriends = await getItemLocal('userFriends');
+        const newLocalFriends = localFriends.concat(fLocalNew);
+
+        // updating local friends
+        setItemLocal({
+            key: 'userFriends',
+            value: newLocalFriends
+        });
 
         // navigation.reset({
         //     index: 0,
@@ -141,7 +155,18 @@ export default VerifyMembers = ({ navigation, route }) => {
 
         let users = members.map(m => m._id);
 
-        const res = await addGroupMembers(users, auth().currentUser.uid, newUsersData, grpId);
+        // const res = await addGroupMembers(users, auth().currentUser.uid, newUsersData, grpId);
+        const res = await reqHandler({
+            action: 'addGroupMembers',
+            apiUrl: 'groups',
+            method: 'POST',
+            params: {
+                users,
+                uId: auth().currentUser.uid,
+                newUsersData,
+                grpId
+            }
+        });
         setLoading(false);
 
         if (res?.error) {

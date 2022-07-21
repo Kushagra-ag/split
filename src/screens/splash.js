@@ -6,14 +6,15 @@ import EncryptedStorage from 'react-native-encrypted-storage';
 import MyText from '../components/myText';
 import { Layout } from '../styles';
 import { getUserGroups } from '../methods/user';
-import { ThemeContext } from '../themeContext';
+import { Utility } from '../styles';
+
+let DebounceDueTime = 200,
+        debounceTimeout;
 
 const Splash = ({ navigation, initCondition, params }) => {
     const [redirectTo, setRedirectTo] = useState(null);
     // const [err, setErr] = useState(false);
     // const uiMode = useContext(ThemeContext);
-    let DebounceDueTime = 200,
-        debounceTimeout;
 
     const checkFirstTime = async () => {
         let visited = await EncryptedStorage.getItem('visited');
@@ -82,7 +83,7 @@ const Splash = ({ navigation, initCondition, params }) => {
                 <Image source={require('../assets/images/logo-white.png')} resizeMode="center" />
             </View>
             <View style={styles.unigma}>
-                <MyText text="UNIGMA" splashText />
+                <MyText text="UNIGMA" style={styles.splashText} />
             </View>
         </SafeAreaView>
     );
@@ -94,11 +95,19 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#272727'
+        backgroundColor: Utility.Colors.dark.bg
     },
     unigma: {
         position: 'absolute',
         bottom: 0
+    },
+    splashText: {
+        fontFamily: 'Urbanist-Regular',
+        color: Utility.Colors.light.low,
+        fontSize: 20,
+        paddingBottom: 30,
+        opacity: 0.25,
+        letterSpacing: 25
     }
 });
 

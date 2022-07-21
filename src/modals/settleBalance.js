@@ -56,7 +56,12 @@ export default SettleBalanceModal = ({ visible, setVisible, grpId, balance, ...r
                 <View
                     style={[
                         Layout.modal.modalChildView,
-                        { backgroundColor: themeColor.bg === Utility.Colors.dark.bg ? Utility.Colors.light.bg : Utility.Colors.dark.bg }
+                        {
+                            backgroundColor:
+                                themeColor.bg === Utility.Colors.dark.bg
+                                    ? Utility.Colors.light.bg
+                                    : Utility.Colors.dark.bg
+                        }
                     ]}
                 >
                     <View style={[Layout.pageHeader, { width: '100%' }]}>
@@ -72,7 +77,6 @@ export default SettleBalanceModal = ({ visible, setVisible, grpId, balance, ...r
                     />
                     <MyTextInput
                         style={[Textfield.field, { width: '100%' }]}
-                        clearButtonMode="while-editing"
                         placeholder="Add amount"
                         keyboardType="phone-pad"
                         value={amt}
@@ -92,7 +96,7 @@ export default SettleBalanceModal = ({ visible, setVisible, grpId, balance, ...r
                             <MyTextInput
                                 keyboardType="phone-pad"
                                 style={[Textfield.field, { maxWidth: '75%', minWidth: '75%' }]}
-                                clearButtonMode="while-editing"
+                                
                                 placeholder="Mobile (with country code)"
                                 value={userDetails.contact}
                                 onChangeText={e => handleChange(e, 'contact')}
@@ -103,7 +107,7 @@ export default SettleBalanceModal = ({ visible, setVisible, grpId, balance, ...r
                             <MyTextInput
                                 keyboardType="email-address"
                                 style={[Textfield.field, { maxWidth: '75%', minWidth: '75%' }]}
-                                clearButtonMode="while-editing"
+                                
                                 placeholder="Enter your email"
                                 value={userDetails.email}
                                 onChangeText={e => handleChange(e, 'email')}

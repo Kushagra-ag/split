@@ -19,6 +19,7 @@ import MyText from '../../components/myText';
 import MyTextInput from '../../components/myTextInput';
 import { getUserGroups } from '../../methods/user';
 import { ThemeContext } from '../../themeContext';
+import { getItemLocal } from '../../methods/localStorage';
 
 const Home = ({ navigation, route }) => {
     const { theme } = useContext(ThemeContext);
@@ -81,13 +82,28 @@ const Home = ({ navigation, route }) => {
     };
 
     const onLoad = async (userGroupInfo = null) => {
-        let grpData = userGroupInfo ? userGroupInfo : await getUserGroups(user.uid);
-        console.log('grpdata from home- ', grpData);
+        let grpData = userGroupInfo ? userGroupInfo : await getUserGroups(user.uid), pinnedGrps = await getItemLocal('pinnedGrps') || [];
+        console.log('grpdata from home- ', grpData, pinnedGrps);
 
         if (grpData?.error) {
             setErr(grpData.msg);
             return;
         }
+
+        // sort pinned groups to the top
+        if(pinnedGrps.length > 0) {
+            grpData.forEach((grp, idx) => {
+                const pinnedGrpIdx = pinnedGrps.indexOf(grp._id);
+                if(pinnedGrpIdx !== -1) {
+                    pinnedGrps[pinnedGrpIdx] = grpData[idx];
+                    pinnedGrps[pinnedGrpIdx].pinned = true;
+                    grpData.splice(idx, 1);
+                }
+            });
+
+            grpData = pinnedGrps.concat(grpData);
+        }
+
         setData(grpData);
 
         !user.phoneNumber && setTimeout(dotAnimation, 1000);
@@ -107,7 +123,7 @@ const Home = ({ navigation, route }) => {
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             >
                 <View style={Layout.pageHeader}>
-                    <MyText text={'Split'} bigTitle />
+                    <MyText text={'Splitz'} bigTitle />
                     <Pressable onPress={() => navigation.navigate('settings')}>
                         <View
                             style={[
@@ -136,7 +152,6 @@ const Home = ({ navigation, route }) => {
                         <MyTextInput
                             keyboardType="default"
                             placeholder="Search"
-                            clearButtonMode="while-editing"
                             style={Misc.search.searchField}
                             value={query}
                             onChangeText={e => handleSearch(e)}
@@ -160,57 +175,7 @@ const Home = ({ navigation, route }) => {
                     data ? (
                         data.length > 0 ? (
                             data.map(grp => (
-                                <View style={Misc.rows.container} key={grp._id}>
-                                    <TouchableOpacity
-                                        activeOpacity={0.8}
-                                        style={Misc.rows.itemLeftGrow}
-                                        onPress={() =>
-                                            navigation.navigate('groups', {
-                                                screen: 'default',
-                                                params: {
-                                                    _id: grp._id
-                                                }
-                                            })
-                                        }
-                                    >
-                                        <View>
-                                            <MyText
-                                                text={grp.name}
-                                                style={[styles.grpHeading, Misc.width[80]]}
-                                                opacity="med"
-                                                numberOfLines={1}
-                                                ellipsizeMode="tail"
-                                                bodyTitle
-                                            />
-                                            <SubText
-                                                amt={grp.cashFlowArr[grp.relUserId[user.uid]]}
-                                                currency={grp.cur}
-                                            />
-                                        </View>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        onPress={() =>
-                                            navigation.navigate('groups', {
-                                                screen: 'expenses',
-                                                params: {
-                                                    screen: 'default',
-                                                    params: {
-                                                        _id: grp._id
-                                                    }
-                                                }
-                                            })
-                                        }
-                                        style={[styles.addExpIcon, { borderColor: themeColor.med, borderWidth: 1, marginRight: 2 }]}
-                                    >
-                                        <View>
-                                            <Icon
-                                                name="add"
-                                                color={themeColor.med}
-                                                size={18}
-                                            />
-                                        </View>
-                                    </TouchableOpacity>
-                                </View>
+                                <GroupItem key={grp._id} grp={grp} uId={user.uid} themeColor={themeColor} navigation={navigation} showPinFlag={true} />
                             ))
                         ) : (
                             <View style={[{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: -1 }]}>
@@ -226,52 +191,7 @@ const Home = ({ navigation, route }) => {
                 ) : search ? (
                     search.length > 0 ? (
                         search.map(grp => (
-                            <View style={Misc.rows.container} key={grp._id}>
-                                <TouchableOpacity
-                                    activeOpacity={0.8}
-                                    style={Misc.rows.itemLeftGrow}
-                                    onPress={() =>
-                                        navigation.navigate('groups', {
-                                            screen: 'default',
-                                            params: {
-                                                _id: grp._id
-                                            }
-                                        })
-                                    }
-                                >
-                                    <View>
-                                        <MyText
-                                            text={grp.name}
-                                            style={styles.grpHeading}
-                                            opacity="med"
-                                            numberOfLines={1}
-                                            ellipsizeMode="tail"
-                                            bodyTitle
-                                        />
-                                        <SubText amt={grp.cashFlowArr[grp.relUserId[user.uid]]} currency={grp.cur} />
-                                    </View>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() =>
-                                        navigation.navigate('groups', {
-                                            screen: 'expenses',
-                                            params: {
-                                                screen: 'default',
-                                                params: {
-                                                    _id: grp._id
-                                                }
-                                            }
-                                        })
-                                    }
-                                    style={[styles.addExpIcon, { borderColor: themeColor.med, borderWidth: 1, marginRight: 2 }]}
-                                >
-                                        <Icon
-                                            name="add"
-                                            color={themeColor.med}
-                                            size={18}
-                                        />
-                                </TouchableOpacity>
-                            </View>
+                            <GroupItem key={grp._id} grp={grp} uId={user.uid} themeColor={themeColor} navigation={navigation} showPinFlag={false} />
                         ))
                     ) : (
                         <View style={[Misc.rows.container, { justifyContent: 'center' }]}>
@@ -298,6 +218,60 @@ const Home = ({ navigation, route }) => {
         </SafeAreaView>
     );
 };
+
+const GroupItem = ({grp, themeColor, uId, navigation, showPinFlag = false}) => {
+
+    return (
+        <View style={Misc.rows.container}>
+            <TouchableOpacity
+                activeOpacity={0.8}
+                style={Misc.rows.itemLeftGrow}
+                onPress={() =>
+                    navigation.navigate('groups', {
+                        screen: 'default',
+                        params: {
+                            _id: grp._id
+                        }
+                    })
+                }
+            >
+                <View>
+                    <MyText
+                        text={grp.name}
+                        style={styles.grpHeading}
+                        opacity="med"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        bodyTitle
+                    />
+                    <SubText amt={grp.cashFlowArr[grp.relUserId[uId]]} currency={grp.cur} />
+                </View>
+            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+                {(showPinFlag && grp.pinned) && <Icon name="pin" color={themeColor.low} size={18} style={{paddingRight: 20}} />}
+                <TouchableOpacity
+                    onPress={() =>
+                        navigation.navigate('groups', {
+                            screen: 'expenses',
+                            params: {
+                                screen: 'default',
+                                params: {
+                                    _id: grp._id
+                                }
+                            }
+                        })
+                    }
+                    style={[
+                        styles.addExpIcon,
+                        { borderColor: themeColor.med, borderWidth: 1, marginRight: 2 }
+                    ]}
+                >
+                    <Icon name="add" color={themeColor.med} size={18} />
+                </TouchableOpacity>
+            </View>
+        </View>
+    )
+}
 
 const SubText = ({ amt, currency }) => {
     return (

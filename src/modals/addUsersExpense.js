@@ -61,7 +61,9 @@ export default AddUsersExpenseModal = ({
                     style={[
                         {
                             backgroundColor:
-                                themeColor.bg === '#272727' ? Utility.Colors.light.bg : Utility.Colors.dark.bg,
+                                themeColor.bg === Utility.Colors.dark.bg
+                                    ? Utility.Colors.light.bg
+                                    : Utility.Colors.dark.bg,
                             maxHeight: height / 2,
                             borderTopRightRadius: 20,
                             borderTopLeftRadius: 20
@@ -83,7 +85,7 @@ export default AddUsersExpenseModal = ({
                         <View style={Misc.rows.itemLeftGrow}>
                             <MyText
                                 text="Add all users"
-                                style={{ maxWidth: '75%' }}
+                                style={Misc.width[75]}
                                 opacity="med"
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
@@ -117,7 +119,7 @@ export default AddUsersExpenseModal = ({
                                 {/*<View>
                                             <MyTextInput
                                                 style={[Textfield.field, {flexGrow:0, maxWidth: 75}]}
-                                                clearButtonMode="while-editing"
+                                                
                                                 placeholder=""
                                                 value={user.val}
                                                 onChangeText={e => onChangeVal(e, user._id)}
